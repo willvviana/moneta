@@ -8,3 +8,7 @@ export class AppError extends Error {
     super(message);
   }
 }
+
+// PostgreSQL SQLSTATE of a thrown pg error, e.g. "23505" unique_violation,
+// "23503" foreign_key_violation.
+export const pgErrorCode = (err: unknown): string | undefined => (err as { code?: string } | null)?.code;
