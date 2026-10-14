@@ -2,5 +2,7 @@ node_modules/
 dist/
 .env
 .env.*
+# 1Password reference files (op:// pointers, no secrets) are safe to commit:
 !.env.op
+!.env.*.op
 *.log
