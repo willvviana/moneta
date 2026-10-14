@@ -14,7 +14,9 @@ export function ProtectedRoute() {
   // Do NOT redirect while the session check is in flight, or a logged-in user flashes to /login.
   if (state.status === "loading") return <Status>Loading…</Status>;
   if (state.status === "error") return <Status>{`Something went wrong: ${state.message}`}</Status>;
-  if (state.status === "unauthenticated") return <Navigate to="/login" replace state={{ from: location }} />;
+  if (state.status === "unauthenticated") {
+    return <Navigate to="/login" replace state={{ from: location, expired: state.reason === "expired" }} />;
+  }
   return <Outlet />;
 }
 

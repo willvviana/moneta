@@ -17,6 +17,8 @@ export function AuthPage({ mode }: { mode: "login" | "register" }) {
   // Where the user was heading before being bounced to /login.
   const from = (location.state as { from?: { pathname: string } } | null)?.from?.pathname ?? "/";
 
+  const expired = (location.state as { expired?: boolean } | null)?.expired === true;
+
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
@@ -34,6 +36,7 @@ export function AuthPage({ mode }: { mode: "login" | "register" }) {
   return (
     <main className="card">
       <h1>{isLogin ? "Log in to Moneta" : "Create your Moneta account"}</h1>
+      {expired && <p className="notice">Your session expired. Please log in again.</p>}
       <form onSubmit={onSubmit}>
         <label>
           Email

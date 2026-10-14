@@ -2,6 +2,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./auth";
 import { AuthPage } from "./pages/AuthPage";
 import { Home } from "./pages/Home";
+import { Transactions } from "./pages/Transactions";
 import { ProtectedRoute, PublicOnlyRoute } from "./routes";
 
 export function App() {
@@ -15,6 +16,7 @@ export function App() {
           </Route>
           <Route element={<ProtectedRoute />}>
             <Route path="/" element={<Home />} />
+            <Route path="/transactions" element={<Transactions />} />
           </Route>
         </Routes>
       </BrowserRouter>

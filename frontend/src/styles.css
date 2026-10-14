@@ -12,3 +12,28 @@ a { color: #8fb0ff; }
 .error { color: #ff8a80; margin: 0; }
 .status { text-align: center; margin-top: 20vh; }
 small { color: #9aa3b5; }
+.notice { color: #8fd19e; margin: 0 0 1rem; }
+.muted { color: #9aa3b5; }
+
+select { padding: .6rem; background: #0f1218; color: inherit; border: 1px solid #333b4d; border-radius: 4px; font-size: 1rem; }
+button.secondary { background: #262d3b; }
+button.secondary:hover:not(:disabled) { background: #333b4d; }
+button.danger { background: #c0392b; }
+
+.page { max-width: 900px; margin: 4vh auto; padding: 0 1rem; }
+.topbar { display: flex; justify-content: space-between; align-items: baseline; }
+.month-bar { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin: 1rem 0; }
+.spacer { flex: 1; }
+.inline { display: flex; gap: .5rem; align-items: center; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.tx-form { background: #181d27; border: 1px solid #262d3b; border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 1rem; }
+.tx-form h2 { margin: 0; font-size: 1.1rem; }
+
+table { width: 100%; border-collapse: collapse; background: #181d27; border-radius: 8px; overflow: hidden; }
+th, td { padding: .6rem .75rem; text-align: left; border-bottom: 1px solid #262d3b; }
+th { color: #9aa3b5; font-weight: 500; font-size: .85rem; }
+.num { text-align: right; font-variant-numeric: tabular-nums; }
+td.income { color: #8fd19e; }
+td.expense { color: #ff8a80; }
+td.actions { display: flex; gap: .4rem; align-items: center; justify-content: flex-end; }
+td.actions button { padding: .35rem .6rem; font-size: .85rem; }

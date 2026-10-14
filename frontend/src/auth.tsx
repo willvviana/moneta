@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { api, ApiError } from "./api";
+import { api, ApiError, setUnauthorizedHandler } from "./api";
 
 export interface User {
   id: string;
@@ -7,10 +7,11 @@ export interface User {
 }
 
 // Four states, so the UI never guesses: "loading" = still asking the server.
+// reason "expired" = we WERE logged in and the server stopped accepting the session.
 type AuthState =
   | { status: "loading" }
   | { status: "authenticated"; user: User }
-  | { status: "unauthenticated" }
+  | { status: "unauthenticated"; reason?: "expired" }
   | { status: "error"; message: string };
 
 interface AuthContextValue {
@@ -38,6 +39,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
+  }, []);
+
+  // Any protected API call that gets a 401 flips us to "expired"; ProtectedRoute then redirects to /login.
+  useEffect(() => {
+    setUnauthorizedHandler(() =>
+      setState((prev) => (prev.status === "authenticated" ? { status: "unauthenticated", reason: "expired" } : prev)),
+    );
+    return () => setUnauthorizedHandler(null);
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {

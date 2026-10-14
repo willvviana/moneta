@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { useAuth } from "../auth";
 
 // Placeholder behind the login wall. The dashboard will replace this.
@@ -9,6 +10,9 @@ export function Home() {
     <main className="card">
       <h1>Moneta</h1>
       <p>Signed in as {state.user.email}</p>
+      <p>
+        <Link to="/transactions">Transactions</Link>
+      </p>
       <button onClick={() => void logout()}>Log out</button>
     </main>
   );
