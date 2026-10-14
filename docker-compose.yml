@@ -14,9 +14,8 @@ services:
       - "5434:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
-      # Runs only on FIRST init of an empty volume. We'll replace this with a
-      # real migration tool later.
-      - ./db/migrations:/docker-entrypoint-initdb.d:ro
+      # No initdb mount: the schema is created ONLY by node-pg-migrate
+      # (npm run migrate -- up), so there is a single source of truth.
 
 volumes:
   pgdata:

@@ -52,7 +52,7 @@ React UI  ->  Express routes  ->  services (business rules)  ->  repositories (S
 
 ## Open items
 
-- Migration tool: until chosen, `db/migrations/*.sql` auto-run only on a fresh volume; later files are applied manually.
+- (Resolved) Migrations: `node-pg-migrate` via CLI, plain `.sql` files in `db/migrations` with `-- Up Migration` / `-- Down Migration` markers. Applied with `npm run migrate -- up` from `backend/`. Postgres no longer auto-runs them. Applied migrations are tracked in the `pgmigrations` table. Never edit an applied migration; add a new one.
 - Migration tool (e.g. node-pg-migrate) and query layer (raw `pg` vs. a query builder).
 - Test framework (Vitest/Jest + Supertest) and local Postgres setup (Docker).
 - Deployment target.

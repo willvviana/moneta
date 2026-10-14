@@ -1,3 +1,4 @@
+-- Up Migration
 -- Server-side sessions. The browser holds a random token in an HTTP-only
 -- cookie; we store only its SHA-256 hash, so a leaked table can't be replayed.
 
@@ -14,3 +15,6 @@ CREATE TABLE sessions (
 CREATE INDEX sessions_user_idx ON sessions (user_id);
 -- Periodic purge of expired rows.
 CREATE INDEX sessions_expires_idx ON sessions (expires_at);
+
+-- Down Migration
+DROP TABLE sessions;

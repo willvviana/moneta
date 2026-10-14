@@ -1,3 +1,4 @@
+-- Up Migration
 -- Moneta initial schema. See docs/DECISIONS.md for the rules enforced here.
 
 CREATE TABLE users (
@@ -34,3 +35,8 @@ CREATE TABLE transactions (
 
 -- Most queries filter by user and a date range.
 CREATE INDEX transactions_user_date_idx ON transactions (user_id, date);
+
+-- Down Migration
+DROP TABLE transactions;
+DROP TABLE categories;
+DROP TABLE users;
