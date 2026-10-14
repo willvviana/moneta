@@ -41,9 +41,18 @@ React UI  ->  Express routes  ->  services (business rules)  ->  repositories (S
 - `transactions(id, user_id, category_id, type, amount_cents, date, description, created_at)`
 - `budgets(id, user_id, category_id, period_start, period_end, limit_cents)`
 
+## Authentication (ACCEPTED)
+
+- **Server-side sessions in PostgreSQL**, delivered via an HTTP-only cookie. Rejected: JWTs (harder revocation; browser-storage XSS exposure; our backend is first-party so we don't need their distributed benefits).
+- Cookie holds a random 32-byte token; DB stores only `sha256(token)`.
+- Cookie flags: `HttpOnly`, `SameSite=Lax`, `Secure` in production; idle and absolute expiry.
+- CSRF: `SameSite=Lax` + `Origin` header check on state-changing requests.
+- Passwords: argon2id. Failed logins are rate-limited; "no such user" and "wrong password" return the same error.
+- **Same-site deployment** (dev: Vite proxies `/api` to Express; prod: one domain or reverse proxy). Platform choice deferred.
+
 ## Open items
 
-- Password hashing and session vs. JWT (decide in the auth milestone).
+- Migration tool: until chosen, `db/migrations/*.sql` auto-run only on a fresh volume; later files are applied manually.
 - Migration tool (e.g. node-pg-migrate) and query layer (raw `pg` vs. a query builder).
 - Test framework (Vitest/Jest + Supertest) and local Postgres setup (Docker).
 - Deployment target.
