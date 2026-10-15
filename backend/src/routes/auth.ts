@@ -3,21 +3,35 @@ import rateLimit from "express-rate-limit";
 import { z } from "zod";
 import { AppError } from "../errors.js";
 import { requireAuth, SESSION_COOKIE } from "../middleware/auth.js";
-import { SESSION_ABSOLUTE_DAYS, login, logout, register } from "../services/auth.js";
+import { SESSION_ABSOLUTE_DAYS, changePassword, login, logout, register } from "../services/auth.js";
 
 // Route layer: HTTP only. Validate input, call the service, shape the response.
 
+// Minimum length for NEW passwords (registration, change). Lowering it never locks anyone out of login.
+export const MIN_PASSWORD_LENGTH = 8;
+
+const email = z.string().trim().toLowerCase().email().max(254);
+
 const credentials = z.object({
-  email: z.string().trim().toLowerCase().email().max(254),
+  email,
   // Length over complexity rules. Max protects against huge-input hashing DoS.
-  password: z.string().min(12).max(128),
+  password: z.string().min(MIN_PASSWORD_LENGTH).max(128),
 });
 
 function parse(body: unknown) {
   const result = credentials.safeParse(body);
-  if (!result.success) throw new AppError(400, "Invalid email or password format (password needs 12+ characters)");
+  if (!result.success) throw new AppError(400, `Invalid email or password format (password needs ${MIN_PASSWORD_LENGTH}+ characters)`);
   return result.data;
 }
+
+const passwordChange = z
+  .object({
+    email,
+    // No minimum on the CURRENT password: we only compare it, we don't set it.
+    currentPassword: z.string().min(1).max(128),
+    newPassword: z.string().min(MIN_PASSWORD_LENGTH).max(128),
+  })
+  .strict();
 
 function setSessionCookie(res: Response, token: string) {
   res.cookie(SESSION_COOKIE, token, {
@@ -29,8 +43,10 @@ function setSessionCookie(res: Response, token: string) {
   });
 }
 
-// Brute-force protection: 10 attempts / 15 min / IP on login.
-const loginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 10, standardHeaders: true, legacyHeaders: false });
+// Brute-force protection: 10 attempts / 15 min / IP. Each limiter has its own counter.
+const makeAuthLimiter = () => rateLimit({ windowMs: 15 * 60 * 1000, limit: 10, standardHeaders: true, legacyHeaders: false });
+const loginLimiter = makeAuthLimiter();
+const changePasswordLimiter = makeAuthLimiter(); // also lets an attacker test password guesses
 
 export const authRouter = Router();
 
@@ -46,6 +62,14 @@ authRouter.post("/login", loginLimiter, async (req, res) => {
   const { user, token } = await login(email, password);
   setSessionCookie(res, token);
   res.json({ user });
+});
+
+authRouter.post("/change-password", changePasswordLimiter, async (req, res) => {
+  const parsed = passwordChange.safeParse(req.body);
+  if (!parsed.success) throw new AppError(400, `Enter your email, your current password and a new password of ${MIN_PASSWORD_LENGTH}+ characters`);
+  await changePassword(parsed.data.email, parsed.data.currentPassword, parsed.data.newPassword);
+  res.clearCookie(SESSION_COOKIE, { path: "/" }); // this browser's session was just revoked too
+  res.status(204).end();
 });
 
 authRouter.post("/logout", async (req, res) => {

@@ -27,6 +27,24 @@ export async function findUserByEmail(email: string): Promise<UserWithHash | und
   return rows[0];
 }
 
+// Two writes that must succeed or fail TOGETHER: store the new hash AND delete every session of the user.
+// If only the first happened, a stolen session would survive the password change; if only the second,
+// the user would be logged out with the old password still valid. Hence one database transaction.
+export async function setPasswordAndRevokeSessions(userId: string, passwordHash: string): Promise<void> {
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    await client.query(`UPDATE users SET password_hash = $2 WHERE id = $1`, [userId, passwordHash]);
+    await client.query(`DELETE FROM sessions WHERE user_id = $1`, [userId]);
+    await client.query("COMMIT");
+  } catch (err) {
+    await client.query("ROLLBACK");
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
 export async function findUserById(id: string): Promise<PublicUser | undefined> {
   const { rows } = await pool.query<PublicUser>(`SELECT id, email FROM users WHERE id = $1`, [id]);
   return rows[0];
