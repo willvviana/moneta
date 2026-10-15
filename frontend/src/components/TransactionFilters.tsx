@@ -38,7 +38,7 @@ export function TransactionFilters({ filters, onChange, categories, problem, act
         </label>
         <label className="inline-label grow">
           Search description
-          <input type="search" value={filters.text} onChange={(e) => set({ text: e.target.value })} placeholder="e.g. lunch" />
+          <input type="search" value={filters.text} onChange={(e) => set({ text: e.target.value })} placeholder="e.g. supermarket" />
         </label>
         <label className="inline-label narrow">
           Min amount

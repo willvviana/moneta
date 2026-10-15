@@ -204,7 +204,7 @@ export function Categories() {
           <div className="filters" role="search" aria-label="Filter categories">
             <label className="inline-label grow">
               Search name
-              <input type="search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="e.g. groc" />
+              <input type="search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="e.g. supermarket" />
             </label>
             {searching && (
               <button type="button" className="secondary" onClick={() => setSearch("")}>
