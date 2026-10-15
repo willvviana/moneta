@@ -38,6 +38,7 @@ services:
       # APP_ORIGIN is optional here: the app falls back to RENDER_EXTERNAL_URL (the service's own https URL).
       # Set it explicitly if you add a custom domain.
       #
-      # TRUST_PROXY is deliberately NOT set yet. Render's proxy count must be measured, not guessed
-      # (see docs/DECISIONS.md, "Deploying to Render"). Until it is set, the rate limiters treat all
-      # users as one client: safe, but one person's failed logins can lock everyone out for 15 minutes.
+      # Number of proxies in front of the app (Cloudflare and Render's own). Measured on 2026-10-15 after the
+      # first deploy, not guessed: see docs/DECISIONS.md, "Deploying to Render".
+      - key: TRUST_PROXY
+        value: "3"
