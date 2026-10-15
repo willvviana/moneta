@@ -16,7 +16,7 @@ export function Footer() {
           </p>
         </div>
 
-        <nav className="footer-col" aria-label="Footer">
+        <nav className="footer-col footer-explore" aria-label="Footer">
           <p className="footer-heading">Explore</p>
           <ul>
             {NAV_LINKS.map((l) => (
@@ -27,7 +27,7 @@ export function Footer() {
           </ul>
         </nav>
 
-        <div className="footer-col">
+        <div className="footer-col footer-values">
           <p className="footer-heading">Principles</p>
           <ul className="footer-principles">
             <li>

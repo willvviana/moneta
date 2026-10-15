@@ -1,14 +1,30 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
+import {
+  COLOR_ROLES,
+  DEFAULT_COLORS,
+  FONT_CHOICES,
+  FONT_ROLES,
+  resetColors,
+  rgbLabel,
+  setColor,
+  setFont,
+  setMode,
+  useTheme,
+  type FontChoice,
+} from "../theme";
 
-// A profile icon that opens a small panel with the signed-in email and Log out.
+// A profile icon that opens a small panel with the signed-in email, appearance settings and Log out.
 // A disclosure pattern: a button with aria-expanded controlling a panel. It closes on an outside
 // click, on Escape (focus returns to the button) and after navigating.
 export function AccountMenu({ email, onLogout }: { email: string; onLogout(): void }) {
   const [open, setOpen] = useState(false);
+  const [optionsOpen, setOptionsOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const { pathname } = useLocation();
+  const theme = useTheme();
+  const overrides = theme.overrides[theme.mode];
 
   useEffect(() => setOpen(false), [pathname]);
 
@@ -52,6 +68,57 @@ export function AccountMenu({ email, onLogout }: { email: string; onLogout(): vo
             <p className="account-label">Signed in as</p>
             <p className="account-email">{email}</p>
           </div>
+          <div className="account-rule" aria-hidden="true" />
+          <button
+            className="secondary"
+            aria-expanded={optionsOpen}
+            aria-controls="account-options"
+            onClick={() => setOptionsOpen((o) => !o)}
+          >
+            {optionsOpen ? "Hide options" : "Options"}
+          </button>
+          {optionsOpen && (
+            <div id="account-options" className="account-options">
+              <div className="account-section">
+                <p className="account-label">Appearance</p>
+                <button className="secondary" onClick={() => setMode(theme.mode === "dark" ? "light" : "dark")}>
+                  Switch to {theme.mode === "dark" ? "light" : "dark"} mode
+                </button>
+              </div>
+              <div className="account-section">
+                <p className="account-label">Colors ({theme.mode} mode)</p>
+                {COLOR_ROLES.map(({ role, label }) => {
+                  const value = overrides[role] ?? DEFAULT_COLORS[theme.mode][role];
+                  return (
+                    <label key={role} className="color-row">
+                      <span>{label}</span>
+                      <small>{rgbLabel(value)}</small>
+                      <input type="color" value={value} onChange={(e) => setColor(role, e.target.value)} />
+                    </label>
+                  );
+                })}
+                <button className="secondary" onClick={resetColors} disabled={Object.keys(overrides).length === 0}>
+                  Reset colors
+                </button>
+              </div>
+              <div className="account-section">
+                <p className="account-label">Fonts</p>
+                {FONT_ROLES.map(({ role, label, fallback }) => (
+                  <label key={role} className="font-row">
+                    <span>{label}</span>
+                    <select value={theme.fonts[role]} onChange={(e) => setFont(role, e.target.value as FontChoice)}>
+                      {FONT_CHOICES.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.label}
+                          {c.id === fallback ? " (Default)" : ""}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
           <div className="account-rule" aria-hidden="true" />
           <button className="secondary account-logout" onClick={onLogout}>
             Log out
