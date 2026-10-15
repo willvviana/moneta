@@ -19,7 +19,9 @@ export const app = express();
 
 // In production the API must know exactly which origin may send it state-changing requests.
 // Failing at startup beats silently falling back to a localhost default (see config.ts).
-const appOrigin = parseAppOrigin(process.env.APP_ORIGIN, process.env.NODE_ENV === "production");
+// On Render, RENDER_EXTERNAL_URL is the service's own https URL; it is the fallback when APP_ORIGIN is not
+// set (set APP_ORIGIN explicitly once a custom domain is used).
+const appOrigin = parseAppOrigin(process.env.APP_ORIGIN || process.env.RENDER_EXTERNAL_URL, process.env.NODE_ENV === "production");
 
 // Behind a reverse proxy (Render, nginx) every request appears to come from the proxy's IP, so the
 // rate limiters would share ONE bucket for all users. TRUST_PROXY=<number of proxy hops> (usually 1)

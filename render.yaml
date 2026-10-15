@@ -1,0 +1,40 @@
+# Render Blueprint: one web service (Express serves the API AND the built React app, one origin)
+# plus one PostgreSQL database. Create it in the Render dashboard: New > Blueprint > pick this repo.
+# No secret is stored here: the database URL is wired in by Render at deploy time.
+
+databases:
+  - name: moneta-db
+    databaseName: moneta
+    user: moneta
+    postgresMajorVersion: "16" # matches local development (docker-compose.yml)
+    # FREE PLAN LIMITS (Render docs): the database expires 30 days after creation (14-day grace period,
+    # then it is deleted) and has no backups. Fine for a demo; change `plan` to a paid plan to keep data.
+    plan: free
+
+services:
+  - type: web
+    name: moneta
+    runtime: node
+    # Free web services spin down after 15 minutes without traffic; the next request takes about a minute.
+    plan: free
+    buildCommand: npm --prefix frontend ci && npm --prefix frontend run build && npm --prefix backend ci && npm --prefix backend run build
+    # Migrations run on every start, before the server listens. They are idempotent (already-applied ones
+    # are skipped), and a failed migration stops the start, so the old version keeps serving.
+    startCommand: cd backend && npm run migrate -- up && npm start
+    # /health queries the database, so a deploy only goes live if PostgreSQL is reachable.
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL # the internal connection string; used by the app and by the migrations
+        fromDatabase:
+          name: moneta-db
+          property: connectionString
+      # APP_ORIGIN is optional here: the app falls back to RENDER_EXTERNAL_URL (the service's own https URL).
+      # Set it explicitly if you add a custom domain.
+      #
+      # TRUST_PROXY is deliberately NOT set yet. Render's proxy count must be measured, not guessed
+      # (see docs/DECISIONS.md, "Deploying to Render"). Until it is set, the rate limiters treat all
+      # users as one client: safe, but one person's failed logins can lock everyone out for 15 minutes.
