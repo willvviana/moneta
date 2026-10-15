@@ -19,6 +19,12 @@
   --text: #e8eaf2;
   --text-dim: #a4abc0;
   --muted: #7f879d;
+  --title: var(--text); /* h1/h2 colour; the user can override it */
+  --link-soft: color-mix(in srgb, var(--title) 90%, transparent); /* header and footer links: the Titles colour at 90% strength (softened 10%) */
+  --label: var(--muted); /* small uppercase labels and table headers; overridable together with --label-strong */
+  --label-strong: var(--text); /* totals rows */
+  --line-strong: #323b52; /* hover borders */
+  --header-bg: rgba(10, 12, 18, 0.82);
 
   --indigo: #7380ff;
   --indigo-strong: #5662f0;
@@ -26,7 +32,7 @@
   --navy: #5b7fd6; /* navy blue, lightened just enough to stay readable on the dark background: nav, logo, page eyebrow labels */
   --income: #39ff14; /* neon green: income amounts and bars */
   --scarlet: #ff2e4d; /* crimson scarlet: expenses and over-budget text (readable on dark) */
-  --scarlet-deep: #d4153a; /* same hue, darker: expense bars and over-budget fills */
+  --scarlet-deep: color-mix(in srgb, var(--scarlet) 82%, black); /* same hue, darker: expense bars and over-budget fills (follows --scarlet) */
   --green: #3fa268; /* forest green: success messages only */
   --green-soft: rgba(63, 162, 104, 0.12);
   --vermilion: #e2583e;
@@ -37,9 +43,38 @@
   --chrome: 2000px; /* header and footer width: effectively edge to edge up to 1080p, with side padding */
   --radius: 12px;
   --radius-sm: 8px;
-  --font-display: "Instrument Serif", "Iowan Old Style", Georgia, serif;
-  --font-body: "Inter Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: Arial, "Helvetica Neue", Helvetica, sans-serif; /* titles and text default to Arial; theme.ts must use the same default */
+  --font-body: Arial, "Helvetica Neue", Helvetica, sans-serif;
   --font-mono: "JetBrains Mono Variable", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+
+/* Light mode: same variable names, readable values on a white page. The data-theme attribute is set on <html> by theme.ts. */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f4f6fb;
+  --bg-raise: #eceff7;
+  --surface: #ffffff;
+  --surface-2: #f0f2f9;
+  --line: #d5dae8;
+  --line-soft: #e3e7f1;
+  --line-strong: #b9c1d6;
+  --header-bg: rgba(244, 246, 251, 0.85);
+
+  --text: #171b2b;
+  --text-dim: #4a526b;
+  --muted: #5f6783;
+
+  --indigo: #3f4fd8;
+  --indigo-strong: #3341c4;
+  --indigo-soft: rgba(63, 79, 216, 0.1);
+  --navy: #2f4fb0;
+  --income: #15803d;
+  --scarlet: #c4122f;
+  --green: #15803d;
+  --green-soft: rgba(21, 128, 61, 0.1);
+  --vermilion: #c8432a;
+  --vermilion-text: #b3341c;
+  --vermilion-soft: rgba(200, 67, 42, 0.1);
 }
 
 * { box-sizing: border-box; }
@@ -66,7 +101,7 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
 
 /* ---- Typography -------------------------------------------------------- */
 
-h1, h2 { font-family: var(--font-display); font-weight: 400; margin: 0; letter-spacing: -0.01em; }
+h1, h2 { font-family: var(--font-display); font-weight: 400; margin: 0; letter-spacing: -0.01em; color: var(--title); }
 h1 { font-size: 2.4rem; line-height: 1.08; }
 h2 {
   font-size: 1.5rem;
@@ -104,6 +139,7 @@ h2::before {
   vertical-align: middle;
   background: #fff;
 }
+:root[data-theme="light"] .eyebrow::before { background: var(--text); } /* a white dash would vanish on a light page */
 
 .muted { color: var(--muted); }
 .note { font-size: 0.82rem; color: var(--muted); margin: 0.6rem 0 0; }
@@ -115,7 +151,7 @@ h2::before {
   position: sticky;
   top: 0;
   z-index: 10;
-  background: rgba(10, 12, 18, 0.82);
+  background: var(--header-bg);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--line-soft);
 }
@@ -137,10 +173,11 @@ h2::before {
 .site-nav > a {
   padding: 0.4rem 0.65rem;
   font-size: 0.85rem;
-  color: var(--text-dim);
+  font-family: var(--font-display); /* nav text matches the titles: same font, colour at 90% strength (both set in Options) */
+  color: var(--link-soft);
   border-bottom: 2px solid transparent;
 }
-.site-nav > a:hover { color: var(--text); text-decoration: none; }
+.site-nav > a:hover { color: var(--title); text-decoration: none; }
 .site-nav > a.active { color: var(--navy); border-bottom-color: var(--navy); }
 /* Account menu: profile icon + panel (email and Log out) */
 .account { position: relative; margin-left: auto; }
@@ -160,13 +197,25 @@ h2::before {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35); /* only because it floats over the page */
+  max-height: calc(100vh - 5rem); /* tall content scrolls inside the panel instead of running off the screen */
+  overflow-y: auto;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.25); /* only because it floats over the page */
 }
 .account-rule { height: 1px; background: var(--line-soft); }
 .account-logout { width: 100%; }
 .account-panel p { margin: 0; }
-.account-label { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+.account-label { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--label); }
 .account-email { margin-top: 0.25rem; font-size: 0.92rem; color: var(--text); overflow-wrap: anywhere; }
+.account-section { display: grid; gap: 0.6rem; }
+.font-row { display: grid; gap: 0.25rem; }
+.font-row select { width: 100%; min-height: 36px; padding: 0.35rem 0.6rem; font-size: 0.88rem; }
+.account-options { display: grid; gap: 1rem; }
+.account-section .account-label { margin: 0; }
+.color-row { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 0.1rem 0.6rem; }
+.color-row span { font-size: 0.85rem; color: var(--text); }
+.color-row small { grid-column: 1; font-family: var(--font-mono); font-size: 0.68rem; color: var(--label); }
+.color-row input[type="color"] { grid-column: 2; grid-row: 1 / span 2; width: 38px; min-height: 30px; height: 30px; padding: 2px; border-radius: 6px; cursor: pointer; }
+.account-panel .account-actions { display: grid; gap: 0.5rem; }
 .menu-toggle { display: none; margin-left: auto; }
 
 /* ---- Page structure ----------------------------------------------------- */
@@ -187,7 +236,7 @@ h2::before {
 /* A hint inside the bar takes its own full-width line directly under the controls */
 .month-bar .note { flex-basis: 100%; margin: 0.15rem 0 0; }
 .inline { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
-.inline-label { display: flex; flex-direction: column; gap: 0.25rem; font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.inline-label { display: flex; flex-direction: column; gap: 0.25rem; font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--label); }
 /* The small mono/uppercase styling is for the label text only; the controls use the normal body font */
 .inline-label select, .inline-label input { font-family: var(--font-body); font-size: 0.95rem; letter-spacing: normal; text-transform: none; }
 /* Table filter bar (transactions, categories, budgets, category report) */
@@ -215,15 +264,31 @@ th.num .sort-btn { flex-direction: row-reverse; }
   margin: 0 auto;
   padding: 1.75rem 1.5rem 1.4rem;
   display: grid;
-  grid-template-columns: 1.3fr 0.8fr 1.5fr;
-  gap: 2rem;
+  grid-template-columns: 1fr 1fr; /* the brand text runs to the middle of the page */
+  grid-template-areas:
+    "brand values"
+    "explore explore"; /* the page links run side by side along the bottom */
+  gap: 1.5rem 3rem;
 }
+.footer-brand { grid-area: brand; }
+.footer-values { grid-area: values; }
+.footer-explore {
+  grid-area: explore;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 1.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line-soft);
+}
+.footer-explore .footer-heading { margin: 0; }
+.footer-col.footer-explore ul { display: flex; flex-wrap: wrap; gap: 0.4rem 1.5rem; }
 .footer-tagline { margin: 0.7rem 0 0.35rem; font-family: var(--font-display); font-size: 1.2rem; line-height: 1.15; }
-.footer-text { margin: 0; max-width: 38ch; font-size: 0.8rem; color: var(--muted); }
+.footer-text { margin: 0; font-size: 0.8rem; color: var(--muted); }
 .footer-heading { margin: 0 0 0.7rem; font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-dim); }
 .footer-col ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 0.4rem; }
-.footer-col a { color: var(--text-dim); font-size: 0.85rem; }
-.footer-col a:hover { color: var(--navy); }
+.footer-col a { font-family: var(--font-display); color: var(--link-soft); font-size: 0.85rem; } /* same rule as the header links */
+.footer-col a:hover { color: var(--title); }
 .footer-principles li { position: relative; padding-left: 1.1rem; font-size: 0.8rem; color: var(--muted); }
 .footer-principles strong { color: var(--text); font-weight: 600; }
 /* A small rotated diamond as the bullet */
@@ -259,7 +324,7 @@ input, select {
   border-radius: var(--radius-sm);
 }
 input::placeholder { color: var(--muted); }
-input:hover, select:hover { border-color: #323b52; }
+input:hover, select:hover { border-color: var(--line-strong); }
 
 button {
   min-height: 40px;
@@ -301,12 +366,12 @@ button.danger:hover:not(:disabled) { background: #f0664b; }
 .stat { display: flex; flex-direction: column; gap: 0.3rem; padding: 1.1rem 1.3rem; }
 .stat.wide { margin-top: 1rem; gap: 0.5rem; }
 .stat p { margin: 0; }
-.stat-label { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+.stat-label { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--label); }
 .stat-value { font-family: var(--font-display); font-size: 2.2rem; line-height: 1.1; font-variant-numeric: lining-nums; }
 
 /* Budget cards */
 .budget-row { padding: 1.2rem 1.4rem; margin-bottom: 0.9rem; transition: border-color 0.15s; }
-.budget-row:hover { border-color: #33405c; }
+.budget-row:hover { border-color: var(--line-strong); }
 .budget-head, .budget-foot { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; }
 .budget-head { margin-bottom: 0.7rem; }
 .budget-head strong { font-family: var(--font-display); font-weight: 400; font-size: 1.35rem; }
@@ -315,7 +380,7 @@ button.danger:hover:not(:disabled) { background: #f0664b; }
 .actions-inline button { min-height: 34px; padding: 0.3rem 0.7rem; font-size: 0.82rem; }
 
 .bar { height: 6px; background: var(--bg-raise); border-radius: 3px; overflow: hidden; }
-.bar-fill { height: 100%; background: #2f4fb0; border-radius: 3px; } /* navy; .over turns it red */
+.bar-fill { height: 100%; background: var(--navy); border-radius: 3px; } /* follows the Navigation colour; .over turns it red */
 .bar-fill.over { background: var(--scarlet-deep); }
 
 /* ---- Messages ----------------------------------------------------------- */
@@ -333,10 +398,10 @@ button.danger:hover:not(:disabled) { background: #f0664b; }
 
 table { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
 th, td { padding: 0.65rem 1rem; text-align: left; border-bottom: 1px solid var(--line-soft); font-size: 0.92rem; }
-th { font-family: var(--font-mono); font-size: 0.68rem; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); background: var(--bg-raise); }
+th { font-family: var(--font-mono); font-size: 0.68rem; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--label); background: var(--bg-raise); }
 tbody tr:hover { background: var(--surface-2); }
 tbody tr:last-child td, tfoot tr:last-child th { border-bottom: 0; }
-tfoot th { color: var(--text); font-size: 0.8rem; border-top: 1px solid var(--line); background: var(--bg-raise); }
+tfoot th { color: var(--label-strong); font-size: 0.8rem; border-top: 1px solid var(--line); background: var(--bg-raise); }
 .num { text-align: right; font-variant-numeric: tabular-nums; }
 td.actions { display: flex; gap: 0.4rem; align-items: center; justify-content: flex-end; }
 td.actions button { min-height: 34px; padding: 0.3rem 0.7rem; font-size: 0.82rem; }
@@ -345,8 +410,8 @@ td.actions button { min-height: 34px; padding: 0.3rem 0.7rem; font-size: 0.82rem
 .cell-bar .fill { display: block; height: 100%; border-radius: 3px; }
 .fill.income { background: var(--income); }
 
-/* Share of spending: navy. Navy text alone would be unreadable on the dark background,
-   so the value is a navy pill with pale text, and the bar is navy to match. */
+/* Share of spending: follows the Navigation colour. Navy text alone would be unreadable on the dark
+   background, so the value is a pill (the navy darkened) with pale text, and the bar uses the navy itself. */
 .share {
   display: inline-block;
   padding: 0.1rem 0.6rem;
@@ -354,10 +419,10 @@ td.actions button { min-height: 34px; padding: 0.3rem 0.7rem; font-size: 0.82rem
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: #dbe4ff;
-  background: #1e3a8a;
+  background: color-mix(in srgb, var(--navy) 60%, black);
   border-radius: 999px;
 }
-.fill.share-fill { background: #2f4fb0; }
+.fill.share-fill { background: var(--navy); }
 /* Budget usage: navy at or under the limit, red once spending is over it. */
 .share.over { background: #b3122f; color: #ffe0e5; }
 .fill.spend { background: var(--scarlet-deep); }
@@ -420,8 +485,11 @@ td.actions button { min-height: 34px; padding: 0.3rem 0.7rem; font-size: 0.82rem
 @media (min-width: 761px) and (max-width: 1024px) {
   .site-header-inner { padding: 0.4rem 1.5rem; gap: 1rem; }
   .site-nav > a { padding: 0.4rem 0.5rem; font-size: 0.82rem; }
-  .footer-inner { grid-template-columns: 1fr 1fr; gap: 2.5rem; }
-  .footer-brand { grid-column: 1 / -1; }
+}
+
+/* Tablet and below: the footer sections stack, and the page links still sit side by side (wrapping if needed) */
+@media (max-width: 1024px) {
+  .footer-inner { grid-template-columns: 1fr; grid-template-areas: "brand" "values" "explore"; }
 }
 
 /* Header collapses behind the Menu button up to 900px (the five links plus the account icon don't fit below that) */
@@ -435,7 +503,7 @@ td.actions button { min-height: 34px; padding: 0.3rem 0.7rem; font-size: 0.82rem
   /* Inside the folded menu the account panel opens inline instead of floating */
   .account { margin: 0.9rem 0 0; }
   .account-button { width: 46px; height: 46px; }
-  .account-panel { position: static; width: auto; margin-top: 0.6rem; max-width: none; box-shadow: none; }
+  .account-panel { position: static; width: auto; margin-top: 0.6rem; max-width: none; max-height: none; overflow: visible; box-shadow: none; }
 }
 
 /* Small phones */
@@ -444,5 +512,7 @@ td.actions button { min-height: 34px; padding: 0.3rem 0.7rem; font-size: 0.82rem
   .brand .brand-name { font-size: 1.25rem; }
   .brand .seal { width: 19px; height: 24px; }
   .footer-tagline { font-size: 1.1rem; }
+  .footer-explore { gap: 0.5rem 1rem; }
+  .footer-col.footer-explore ul { gap: 0.4rem 1rem; }
   .footer-text { max-width: none; }
 }
