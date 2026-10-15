@@ -80,6 +80,36 @@ interface CategoryRow {
   spentCents: number;
 }
 
+// ---- Monthly report (income, expenses, net cash flow) ------------------------------------------
+
+export type MonthSortKey = "month" | "income" | "expenses" | "net";
+export const MONTH_FIRST_DIR: Record<MonthSortKey, SortDir> = { month: "asc", income: "desc", expenses: "desc", net: "desc" };
+export const DEFAULT_MONTH_SORT: SortState<MonthSortKey> = { key: "month", dir: "asc" }; // chronological, as the server sends
+
+interface MonthRowLike {
+  month: string; // YYYY-MM: zero-padded, so plain string comparison is chronological
+  incomeCents: number;
+  expensesCents: number;
+  netCashFlowCents: number;
+}
+
+export function sortMonthRows<T extends MonthRowLike>(rows: T[], sort: SortState<MonthSortKey>): T[] {
+  const sign = sort.dir === "asc" ? 1 : -1;
+  return [...rows].sort((a, b) => {
+    switch (sort.key) {
+      case "month":
+        return sign * (a.month < b.month ? -1 : a.month > b.month ? 1 : 0);
+      case "income":
+        return sign * (a.incomeCents - b.incomeCents);
+      case "expenses":
+        return sign * (a.expensesCents - b.expensesCents);
+      case "net":
+        return sign * (a.netCashFlowCents - b.netCashFlowCents); // signed: a deficit sorts below a surplus
+    }
+  });
+}
+
+// ---- Category report ----------------------------------------------------------------------------
 // Share = spent / total, and the total is the same for every row, so ordering by share is ordering by spent.
 export function sortCategoryRows<T extends CategoryRow>(rows: T[], sort: SortState<CategorySortKey>): T[] {
   const sign = sort.dir === "asc" ? 1 : -1;

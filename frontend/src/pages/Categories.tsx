@@ -5,7 +5,7 @@ import { PageHeader } from "../components/PageHeader";
 import { SortableTh } from "../components/SortableTh";
 import { matchesName } from "../filters";
 import { DEFAULT_NAME_SORT, sortByName, type NameSortKey, type SortState } from "../sort";
-import { deleteCategory, listCategories, renameCategory, type Category } from "../transactions";
+import { createCategory, deleteCategory, listCategories, renameCategory, type Category } from "../transactions";
 
 type Notice = { kind: "ok" | "error"; text: string } | null;
 
@@ -24,6 +24,10 @@ export function Categories() {
   const [notice, setNotice] = useState<Notice>(null);
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState<SortState<NameSortKey>>(DEFAULT_NAME_SORT);
+  const [adding, setAdding] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [addError, setAddError] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
   const latest = useRef(0);
 
   const load = useCallback(async (showSpinner: boolean) => {
@@ -44,6 +48,40 @@ export function Categories() {
   useEffect(() => {
     void load(true);
   }, [load]);
+
+  function startAdd() {
+    setAdding(true);
+    setNewName("");
+    setAddError(null);
+    setNotice(null);
+    setEditingId(null);
+    setConfirmingId(null);
+  }
+
+  async function submitAdd(e: FormEvent) {
+    e.preventDefault();
+    const name = newName.trim();
+    if (!name) return setAddError("Enter a name.");
+    if (name.length > 50) return setAddError("Names can be at most 50 characters.");
+    // Quick feedback only: the server is the authority (and refuses duplicates ignoring case).
+    if (categories.some((o) => o.name.toLowerCase() === name.toLowerCase())) {
+      return setAddError("You already have a category with that name.");
+    }
+
+    setCreating(true);
+    setAddError(null);
+    try {
+      const created = await createCategory(name); // the SERVER assigns the id
+      setAdding(false);
+      setSearch(""); // make sure the new row isn't hidden by an active search
+      setNotice({ kind: "ok", text: `Added "${created.name}".` }); // only after the API confirmed
+      await load(false);
+    } catch (err) {
+      setAddError(messageOf(err)); // e.g. 409 duplicate created in another tab
+    } finally {
+      setCreating(false);
+    }
+  }
 
   function startEdit(c: Category) {
     setEditingId(c.id);
@@ -119,6 +157,36 @@ export function Categories() {
         </p>
       )}
 
+      {loadState === "ready" && !adding && (
+        <div className="month-bar">
+          <span className="spacer" />
+          <button onClick={startAdd}>Add category</button>
+        </div>
+      )}
+      {adding && (
+        <form className="inline add-form" onSubmit={(e) => void submitAdd(e)} aria-label="Add category">
+          <input
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            maxLength={50}
+            autoFocus
+            placeholder="Category name"
+            aria-label="New category name"
+          />
+          <button type="submit" disabled={creating}>
+            {creating ? "Adding…" : "Add"}
+          </button>
+          <button type="button" className="secondary" disabled={creating} onClick={() => setAdding(false)}>
+            Cancel
+          </button>
+        </form>
+      )}
+      {adding && addError && (
+        <p role="alert" className="error">
+          {addError}
+        </p>
+      )}
+
       {loadState === "loading" && <p className="status">Loading…</p>}
       {loadState === "error" && (
         <div className="status">
@@ -128,7 +196,7 @@ export function Categories() {
       )}
       {loadState === "ready" && categories.length === 0 && (
         <p className="status">
-          No categories yet. Create one when you <Link to="/transactions">add a transaction</Link>.
+          No categories yet. Add one above, or create one when you <Link to="/transactions">add a transaction</Link>.
         </p>
       )}
       {loadState === "ready" && categories.length > 0 && (

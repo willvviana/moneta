@@ -142,7 +142,6 @@ h2::before {
   border: 1.5px solid var(--violet);
   border-radius: 6px;
   background: var(--violet-soft);
-  transform: rotate(-4deg); /* like a hand-pressed seal */
 }
 .brand-name { font-family: var(--font-display); font-size: 1.7rem; line-height: 1; letter-spacing: -0.01em; color: var(--violet); }
 
@@ -159,23 +158,23 @@ h2::before {
 .account { position: relative; margin-left: auto; }
 .account-button { display: grid; place-items: center; width: 40px; min-height: 40px; height: 40px; padding: 0; border-radius: 50%; }
 .account-button svg { width: 20px; height: 20px; }
-/* A plain dropdown: email, a divider, Log out */
+/* Same surface as the page cards and tables: --surface, 1px --line border, --radius corners, --line-soft dividers */
 .account-panel {
   position: absolute;
   right: 0;
   top: calc(100% + 0.5rem);
   z-index: 20;
   display: grid;
-  gap: 0.75rem;
+  gap: 1rem;
   width: 260px;
   max-width: 90vw;
-  padding: 0.9rem;
+  padding: 1.1rem 1.25rem;
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.4);
+  border-radius: var(--radius);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35); /* only because it floats over the page */
 }
-.account-rule { height: 1px; background: var(--line); }
+.account-rule { height: 1px; background: var(--line-soft); }
 .account-logout { width: 100%; }
 .account-panel p { margin: 0; }
 .account-label { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
@@ -192,6 +191,12 @@ h2::before {
 .month-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; margin: 0 0 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--line-soft); }
 .month-bar strong { font-family: var(--font-display); font-weight: 400; font-size: 1.5rem; margin-left: 0.5rem; }
 .spacer { flex: 1; }
+/* Reports: the h2 below already draws a top rule, so the bar skips its own divider */
+.month-bar.no-rule { border-bottom: 0; padding-bottom: 0; margin-bottom: 0; }
+/* ...and the first heading sits 1.5rem below the bar, the same gap as on Transactions and Budgets */
+.month-bar.no-rule ~ h2 { margin-top: 1.5rem; } /* every section heading on Reports, so the notes above them sit close to the line */
+/* A hint inside the bar takes its own full-width line directly under the controls */
+.month-bar .note { flex-basis: 100%; margin: 0.15rem 0 0; }
 .inline { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
 .inline-label { display: flex; flex-direction: column; gap: 0.25rem; font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
 /* The small mono/uppercase styling is for the label text only; the controls use the normal body font */
@@ -203,7 +208,8 @@ h2::before {
 .filters .narrow input { width: 100%; }
 .filters .grow input { width: 100%; }
 .status button { margin-left: 0.5rem; }
-
+/* Add-category form: sits above the filter bar with clear space below it */
+.add-form { margin: 0 0 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--line-soft); }
 /* Sortable column headers: look like the header text, behave like buttons */
 .sort-btn { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; font: inherit; letter-spacing: inherit; text-transform: inherit; color: inherit; }
 .sort-btn:focus-visible { outline: 2px solid var(--accent, currentColor); outline-offset: 3px; }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { nextSort, sortByName, sortCategoryRows, sortTransactions, type SortState, type TxSortKey } from "./sort";
+import { nextSort, sortByName, sortCategoryRows, sortMonthRows, sortTransactions, type SortState, type TxSortKey } from "./sort";
 import type { Transaction } from "./transactions";
 
 const tx = (id: string, o: Partial<Transaction>): Transaction => ({
@@ -98,5 +98,36 @@ describe("sortCategoryRows", () => {
     expect(names(sortCategoryRows(cats, { key: "share", dir: "desc" }))).toEqual(
       names(sortCategoryRows(cats, { key: "spent", dir: "desc" })),
     );
+  });
+});
+
+describe("sortMonthRows", () => {
+  const months = [
+    { month: "2026-09", incomeCents: 0, expensesCents: 5000, netCashFlowCents: -5000 },
+    { month: "2026-10", incomeCents: 200000, expensesCents: 80000, netCashFlowCents: 120000 },
+    { month: "2025-12", incomeCents: 200000, expensesCents: 250000, netCashFlowCents: -50000 },
+    { month: "2026-01", incomeCents: 0, expensesCents: 0, netCashFlowCents: 0 },
+  ];
+  const order = (l: typeof months) => l.map((m) => m.month);
+
+  it("sorts months chronologically across a year boundary", () => {
+    expect(order(sortMonthRows(months, { key: "month", dir: "asc" }))).toEqual(["2025-12", "2026-01", "2026-09", "2026-10"]);
+    expect(order(sortMonthRows(months, { key: "month", dir: "desc" }))).toEqual(["2026-10", "2026-09", "2026-01", "2025-12"]);
+  });
+  it("sorts by income, ties keep original order", () => {
+    expect(order(sortMonthRows(months, { key: "income", dir: "desc" }))).toEqual(["2026-10", "2025-12", "2026-09", "2026-01"]);
+    expect(order(sortMonthRows(months, { key: "income", dir: "asc" }))).toEqual(["2026-09", "2026-01", "2026-10", "2025-12"]);
+  });
+  it("sorts by expenses", () => {
+    expect(order(sortMonthRows(months, { key: "expenses", dir: "desc" }))).toEqual(["2025-12", "2026-10", "2026-09", "2026-01"]);
+  });
+  it("sorts net cash flow as a signed number (deficit below zero below surplus)", () => {
+    expect(order(sortMonthRows(months, { key: "net", dir: "asc" }))).toEqual(["2025-12", "2026-09", "2026-01", "2026-10"]);
+    expect(order(sortMonthRows(months, { key: "net", dir: "desc" }))).toEqual(["2026-10", "2026-01", "2026-09", "2025-12"]);
+  });
+  it("does not modify the input", () => {
+    const copy = [...months];
+    sortMonthRows(months, { key: "net", dir: "asc" });
+    expect(months).toEqual(copy);
   });
 });
