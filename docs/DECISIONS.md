@@ -68,6 +68,25 @@ React UI  ->  Express routes  ->  services (business rules)  ->  repositories (S
 - No chart library: CSS bars beside tables; the tables carry the exact values and every bar has a text label. Zero totals are handled explicitly.
 - CSV export deferred (needs escaping of commas, quotes and newlines, plus date/currency format decisions).
 
+## Security hardening (Phase 5, ACCEPTED)
+
+Audit baseline: every query is scoped by `user_id`, inputs are `.strict()` zod schemas, passwords are argon2id, session tokens are stored hashed, errors are generic, and `npm audit --omit=dev` reported 0 vulnerabilities in both packages. Gaps closed in the first batch:
+
+| Gap | Change | Why |
+|---|---|---|
+| No security headers | `helmet()` (nosniff, HSTS, frame-ancestors, strict default CSP, no `X-Powered-By`) | Cheap defence against clickjacking, MIME sniffing and fingerprinting. The CSP must be revisited if Express ever serves the built frontend. |
+| Rate limiter behind a proxy | `TRUST_PROXY=<hops>` sets Express's `trust proxy` | Behind Render every request shows the proxy's IP, so all users would share one 10-attempt bucket. Left unset by default, because trusting `X-Forwarded-For` without a proxy lets clients spoof their IP. |
+| Silent localhost fallback | `APP_ORIGIN` is required when `NODE_ENV=production` (startup fails otherwise) | A wrong CSRF origin check must fail loudly, not quietly. |
+| Unlimited account creation | `/register` limited to 10 per 15 min per IP (`REGISTER_RATE_LIMIT` overrides; the tests raise it) | Each registration costs an argon2 hash: a cheap CPU-exhaustion and spam vector. |
+| PII in logs | Unexpected errors are logged via `safeLogDetails` (name, SQLSTATE, message, stack; never pg's `detail`) | `detail` contains values such as `Key (email)=(a@b.com)`. |
+| Expired sessions accumulate | Hourly `deleteExpiredSessions()` | They are already unusable; this only keeps the table small. |
+
+Known and accepted for now: rate limits are per IP only (no per-account lockout, so distributed guessing is not stopped); registration reveals whether an email exists (409 vs 201); there is no password reset or email verification.
+
+**Deployment shape (ACCEPTED): one Render web service + a managed PostgreSQL database.** One Express service serves both the built React app and `/api`, so the browser sees a single origin and the `SameSite=Lax` session cookie works without a custom domain. Two separate `*.onrender.com` services would be different sites (the domain is on the public suffix list), so the cookie would not be sent. Separate services under one custom domain would also work, but add DNS and configuration for no benefit here. Consequences still to implement: Express must serve `frontend/dist` with an SPA fallback, `helmet`'s CSP must be checked against the real assets, `NODE_ENV=production`, `APP_ORIGIN` (https, exact origin) and `TRUST_PROXY` (hop count matching Render's proxy) must be set, and migrations must run on deploy.
+
+Startup now validates configuration (`config.ts`): `APP_ORIGIN` must be a bare origin (https in production) and `TRUST_PROXY` a hop count from 1 to 99; anything else stops the server instead of being ignored.
+
 ## Open items
 
 - (Resolved) Migrations: `node-pg-migrate` via CLI, plain `.sql` files in `db/migrations` with `-- Up Migration` / `-- Down Migration` markers. Applied with `npm run migrate -- up` from `backend/`. Postgres no longer auto-runs them. Applied migrations are tracked in the `pgmigrations` table. Never edit an applied migration; add a new one.

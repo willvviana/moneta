@@ -23,6 +23,12 @@ export async function touchValidSession(tokenHash: Buffer, idleDays: number): Pr
   return rows[0]?.user_id;
 }
 
+// Housekeeping: expired sessions can never be used again, so remove them. Returns how many were deleted.
+export async function deleteExpiredSessions(): Promise<number> {
+  const { rowCount } = await pool.query(`DELETE FROM sessions WHERE expires_at <= now()`);
+  return rowCount ?? 0;
+}
+
 export async function deleteSession(tokenHash: Buffer): Promise<void> {
   await pool.query(`DELETE FROM sessions WHERE token_hash = $1`, [tokenHash]);
 }
