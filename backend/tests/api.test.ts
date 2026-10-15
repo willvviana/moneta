@@ -185,6 +185,17 @@ describe("categories", () => {
     expect((await u.delete(`/api/categories/${cat}`)).status).toBe(409);
   });
 
+  it("treats names that differ only by case as duplicates (409), but may be renamed to a different case", async () => {
+    const u = await newUser();
+    const id = (await u.post("/api/categories").send({ name: "Bill" })).body.category.id;
+    expect((await u.post("/api/categories").send({ name: "bill" })).status).toBe(409);
+    expect((await u.post("/api/categories").send({ name: "BILL" })).status).toBe(409);
+    // Changing only the casing of the SAME category is fine (it doesn't conflict with itself).
+    const renamed = await u.patch(`/api/categories/${id}`).send({ name: "bill" });
+    expect(renamed.status).toBe(200);
+    expect(renamed.body.category.name).toBe("bill");
+  });
+
   it("two users may use the same category name", async () => {
     const [x, y] = [await newUser(), await newUser()];
     expect((await x.post("/api/categories").send({ name: "Same" })).status).toBe(201);

@@ -46,6 +46,14 @@ export function TransactionForm({ categories, initial, defaultDate, onSubmit, on
     const name = newCategory.trim();
     if (!name) return;
     setError(null);
+    // Typing a name that already exists (ignoring case) just selects it. The server stays the
+    // authority: if our list was stale, its 409 below is still shown.
+    const existing = categories.find((c) => c.name.toLowerCase() === name.toLowerCase());
+    if (existing) {
+      setCategoryId(existing.id);
+      setNewCategory("");
+      return;
+    }
     try {
       const created = await createCategory(name);
       onCategoryCreated(created);
