@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { ApiError } from "../api";
+import { PageHeader } from "../components/PageHeader";
 import { deleteCategory, listCategories, renameCategory, type Category } from "../transactions";
 
 type Notice = { kind: "ok" | "error"; text: string } | null;
@@ -98,14 +99,7 @@ export function Categories() {
 
   return (
     <main className="page">
-      <header className="topbar">
-        <h1>Categories</h1>
-        <nav className="nav">
-          <Link to="/">Home</Link>
-          <Link to="/transactions">Transactions</Link>
-          <Link to="/budgets">Budgets</Link>
-        </nav>
-      </header>
+      <PageHeader eyebrow="Structure" title="Categories" />
 
       {notice && (
         <p role={notice.kind === "error" ? "alert" : "status"} className={notice.kind === "error" ? "error" : "notice"}>

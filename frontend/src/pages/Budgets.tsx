@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { PageHeader } from "../components/PageHeader";
 import { ApiError } from "../api";
 import { deleteBudget, listBudgets, setBudget, type Budget } from "../budgets";
 import { BudgetForm } from "../components/BudgetForm";
@@ -80,14 +80,7 @@ export function Budgets() {
 
   return (
     <main className="page">
-      <header className="topbar">
-        <h1>Budgets</h1>
-        <nav className="nav">
-          <Link to="/">Home</Link>
-          <Link to="/transactions">Transactions</Link>
-          <Link to="/categories">Categories</Link>
-        </nav>
-      </header>
+      <PageHeader eyebrow="Limits" title="Budgets" />
 
       <MonthPicker month={month} onChange={setMonth}>
         {!editor && loadState === "ready" && <button onClick={() => setEditor({ mode: "new" })}>Set a budget</button>}
@@ -141,7 +134,8 @@ export function Budgets() {
               </div>
               <div className="budget-foot">
                 <span className="muted">
-                  {formatCents(b.spentCents)} of {formatCents(b.limitCents)} ({pct}%)
+                  {formatCents(b.spentCents)} of {formatCents(b.limitCents)}{" "}
+                  <span className={over ? "share over" : "share"}>{pct}%</span>
                 </span>
                 <span className="actions-inline">
                   {confirmingId === b.id ? (

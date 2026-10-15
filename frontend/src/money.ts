@@ -35,6 +35,14 @@ export function percentUsed(spentCents: number, limitCents: number): number {
   return Number((BigInt(spentCents) * 100n) / BigInt(limitCents));
 }
 
+// Share of a total as text. A zero total is handled explicitly (no division by zero), and a
+// non-zero amount that floors to 0% reads "<1%" so it doesn't look like nothing was spent.
+export function formatShare(partCents: number, totalCents: number): string {
+  if (totalCents <= 0) return "0%";
+  const pct = percentUsed(partCents, totalCents);
+  return partCents > 0 && pct === 0 ? "<1%" : `${pct}%`;
+}
+
 // 18000 -> "$180.00 left", -12000 -> "Over by $120.00". Zero remaining is "at the limit", not over.
 export function describeRemaining(remainingCents: number): string {
   return remainingCents < 0 ? `Over by ${formatCents(-remainingCents)}` : `${formatCents(remainingCents)} left`;

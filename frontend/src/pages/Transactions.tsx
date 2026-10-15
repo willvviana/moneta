@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { PageHeader } from "../components/PageHeader";
 import { ApiError } from "../api";
 import { MonthPicker } from "../components/MonthPicker";
 import { TransactionForm } from "../components/TransactionForm";
@@ -97,14 +97,7 @@ export function Transactions() {
 
   return (
     <main className="page">
-      <header className="topbar">
-        <h1>Transactions</h1>
-        <nav className="nav">
-          <Link to="/">Home</Link>
-          <Link to="/budgets">Budgets</Link>
-          <Link to="/categories">Categories</Link>
-        </nav>
-      </header>
+      <PageHeader eyebrow="Ledger" title="Transactions" />
 
       <MonthPicker month={month} onChange={setMonth}>
         {!editor && loadState === "ready" && <button onClick={() => setEditor({ mode: "new" })}>Add transaction</button>}

@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ApiError } from "../api";
 import { useAuth } from "../auth";
+import { Brand } from "../components/Brand";
 
 // One form for both screens; only the title, endpoint and link text differ.
 export function AuthPage({ mode }: { mode: "login" | "register" }) {
@@ -34,7 +35,8 @@ export function AuthPage({ mode }: { mode: "login" | "register" }) {
   }
 
   return (
-    <main className="card">
+    <main className="card auth-card">
+      <Brand />
       <h1>{isLogin ? "Log in to Moneta" : "Create your Moneta account"}</h1>
       {expired && <p className="notice">Your session expired. Please log in again.</p>}
       <form onSubmit={onSubmit}>

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { useAuth } from "../auth";
+import { PageHeader } from "../components/PageHeader";
 import { MonthPicker } from "../components/MonthPicker";
 import { getDashboard, type Dashboard } from "../dashboard";
 import { formatCents, formatSignedCents, percentUsed } from "../money";
@@ -8,7 +8,6 @@ import { currentMonth, monthLabel } from "../month";
 
 // The dashboard. Every number comes from the server; this page only formats and lays them out.
 export function Home() {
-  const { state, logout } = useAuth();
   const [month, setMonth] = useState(currentMonth());
   const [data, setData] = useState<Dashboard | null>(null);
   const [loadState, setLoadState] = useState<"loading" | "ready" | "error">("loading");
@@ -34,25 +33,12 @@ export function Home() {
     void load(month);
   }, [month, load]);
 
-  if (state.status !== "authenticated") return null; // ProtectedRoute guarantees this; narrows the type
-
   const b = data?.budgets;
   const net = data?.netCashFlowCents ?? 0;
 
   return (
     <main className="page">
-      <header className="topbar">
-        <h1>Moneta</h1>
-        <nav className="nav">
-          <Link to="/transactions">Transactions</Link>
-          <Link to="/budgets">Budgets</Link>
-          <Link to="/categories">Categories</Link>
-          <span className="muted">{state.user.email}</span>
-          <button className="secondary" onClick={() => void logout()}>
-            Log out
-          </button>
-        </nav>
-      </header>
+      <PageHeader eyebrow="Overview" title="Your month" />
 
       <MonthPicker month={month} onChange={setMonth} />
 
@@ -96,8 +82,10 @@ export function Home() {
             ) : (
               <>
                 <p>
-                  {formatCents(b.spentInBudgetedCategoriesCents)} spent of {formatCents(b.totalBudgetedCents)} budgeted (
-                  {percentUsed(b.spentInBudgetedCategoriesCents, b.totalBudgetedCents)}%)
+                  {formatCents(b.spentInBudgetedCategoriesCents)} spent of {formatCents(b.totalBudgetedCents)} budgeted{" "}
+                  <span className={b.spentInBudgetedCategoriesCents > b.totalBudgetedCents ? "share over" : "share"}>
+                    {percentUsed(b.spentInBudgetedCategoriesCents, b.totalBudgetedCents)}%
+                  </span>
                 </p>
                 <p className={b.overBudgetCount > 0 ? "over-text" : "muted"}>
                   {b.overBudgetCount === 0

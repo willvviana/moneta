@@ -7,6 +7,7 @@ import { authRouter } from "./routes/auth.js";
 import { budgetsRouter } from "./routes/budgets.js";
 import { categoriesRouter } from "./routes/categories.js";
 import { dashboardRouter } from "./routes/dashboard.js";
+import { reportsRouter } from "./routes/reports.js";
 import { transactionsRouter } from "./routes/transactions.js";
 
 // The app is built here WITHOUT listening, so tests can drive it in-process.
@@ -30,6 +31,7 @@ app.use("/api/categories", categoriesRouter);
 app.use("/api/transactions", transactionsRouter);
 app.use("/api/budgets", budgetsRouter);
 app.use("/api/dashboard", dashboardRouter);
+app.use("/api/reports", reportsRouter);
 
 // Central error handler (Express 5 forwards rejected async handlers here).
 // Only AppError messages reach the client; everything else is a generic 500.

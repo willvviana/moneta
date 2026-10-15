@@ -1,5 +1,15 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { currentMonth, isMonth, monthLabel, monthRange, shiftMonth, todayISO } from "./month";
+import {
+  currentMonth,
+  isMonth,
+  monthLabel,
+  monthRange,
+  presetRange,
+  rangeCount,
+  rangeProblem,
+  shiftMonth,
+  todayISO,
+} from "./month";
 
 // CONTRACT: months are "YYYY-MM". monthRange returns the HALF-OPEN range the API expects:
 // `from` is the first day of the month (included), `to` is the first day of the NEXT month (excluded).
@@ -54,6 +64,48 @@ describe("monthLabel", () => {
   it("formats a readable month and year", () => {
     expect(monthLabel("2026-10")).toBe("October 2026");
     expect(monthLabel("2027-01")).toBe("January 2027");
+  });
+});
+
+describe("report ranges (inclusive months)", () => {
+  it.each([
+    ["2026-01", "2026-03", 3],
+    ["2026-05", "2026-05", 1], // same month counts as 1
+    ["2025-12", "2026-01", 2], // year boundary
+    ["2021-01", "2025-12", 60],
+    ["2021-01", "2026-01", 61],
+  ])("rangeCount(%s, %s) = %d", (from, to, n) => expect(rangeCount(from, to)).toBe(n));
+
+  it("accepts valid ranges: one month, and exactly 60 months", () => {
+    expect(rangeProblem("2026-05", "2026-05")).toBeNull();
+    expect(rangeProblem("2021-01", "2025-12")).toBeNull();
+  });
+
+  it.each([
+    ["2026-03", "2026-01", "start month must not be after"],
+    ["2021-01", "2026-01", "at most 60"], // 61 months
+    ["", "2026-01", "Choose a start and an end month"],
+    ["2026-01", "2026-13", "Choose a start and an end month"],
+  ])("rangeProblem(%j, %j) explains the problem", (from, to, fragment) => {
+    expect(rangeProblem(from, to)).toContain(fragment);
+  });
+
+  it.each([
+    ["last3", "2026-10", "2026-08", "2026-10"],
+    ["last6", "2026-10", "2026-05", "2026-10"],
+    ["last12", "2026-10", "2025-11", "2026-10"],
+    ["ytd", "2026-10", "2026-01", "2026-10"],
+    ["last6", "2026-02", "2025-09", "2026-02"], // reaches back across New Year
+    ["ytd", "2026-01", "2026-01", "2026-01"], // January: year to date is one month
+  ] as const)("preset %s ending %s covers %s to %s", (preset, current, from, to) => {
+    expect(presetRange(preset, current)).toEqual({ from, to });
+  });
+
+  it("every preset is a valid range within the cap", () => {
+    for (const p of ["last3", "last6", "last12", "ytd"] as const) {
+      const { from, to } = presetRange(p, "2026-10");
+      expect(rangeProblem(from, to)).toBeNull();
+    }
   });
 });
 

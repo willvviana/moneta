@@ -59,6 +59,15 @@ React UI  ->  Express routes  ->  services (business rules)  ->  repositories (S
 - A category used by transactions OR budgets cannot be deleted (DB foreign key; API returns 409).
 - Dates and months are restricted to years 1900-2099 (PostgreSQL has no year 0).
 
+## Reports (Phase 4, ACCEPTED)
+
+- Period = inclusive range of whole months (`from=YYYY-MM&to=YYYY-MM`), converted to the half-open `[first day of from, first day after to)`. At most 60 months (count of calendar months included); `from > to` and bad formats are 400. Day-level custom ranges deferred.
+- `GET /api/reports/spending-by-category`: expenses per category, largest first (ties by name), unbudgeted categories included, income excluded. Reuses the shared `spentByCategory` rule.
+- `GET /api/reports/over-time`: one bucket per calendar month with income, expenses, net; zero-activity months included (`generate_series` on `timestamp`, cast to date, so time zones cannot shift boundaries). Aggregation in SQL.
+- Reconciliation (tests): category rows sum = category total = monthly expense buckets sum = independent query; a one-month report equals that month's Dashboard.
+- No chart library: CSS bars beside tables; the tables carry the exact values and every bar has a text label. Zero totals are handled explicitly.
+- CSV export deferred (needs escaping of commas, quotes and newlines, plus date/currency format decisions).
+
 ## Open items
 
 - (Resolved) Migrations: `node-pg-migrate` via CLI, plain `.sql` files in `db/migrations` with `-- Up Migration` / `-- Down Migration` markers. Applied with `npm run migrate -- up` from `backend/`. Postgres no longer auto-runs them. Applied migrations are tracked in the `pgmigrations` table. Never edit an applied migration; add a new one.

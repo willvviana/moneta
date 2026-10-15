@@ -1,58 +1,458 @@
-:root { color-scheme: dark; }
-body { font-family: system-ui, sans-serif; margin: 0; background: #0f1218; color: #e6e9f0; }
-.card { max-width: 380px; margin: 10vh auto; padding: 2rem; background: #181d27; border: 1px solid #262d3b; border-radius: 8px; box-shadow: 0 2px 12px rgba(0,0,0,.5); }
-form { display: grid; gap: 1rem; }
-label { display: grid; gap: .25rem; font-size: .9rem; }
-input { padding: .6rem; background: #0f1218; color: inherit; border: 1px solid #333b4d; border-radius: 4px; font-size: 1rem; }
-input:focus { outline: 2px solid #5b8cff; outline-offset: 1px; }
-button { padding: .65rem; border: 0; border-radius: 4px; background: #4a7cf0; color: #fff; font-size: 1rem; cursor: pointer; }
-button:hover:not(:disabled) { background: #5b8cff; }
-button:disabled { opacity: .6; cursor: default; }
-a { color: #8fb0ff; }
-.error { color: #ff8a80; margin: 0; }
-.status { text-align: center; margin-top: 20vh; }
-small { color: #9aa3b5; }
-.notice { color: #8fd19e; margin: 0 0 1rem; }
-.muted { color: #9aa3b5; }
+/* =========================================================================
+   Moneta design system
+   Dark ink background, indigo as the primary accent (links, focus, active nav),
+   forest green for income and success, vermilion (a hanko-seal red) reserved for
+   expenses, warnings and the small ink-stroke / diamond accents. Violet marks the
+   logo seal and the page eyebrow labels.
+   ========================================================================= */
 
-select { padding: .6rem; background: #0f1218; color: inherit; border: 1px solid #333b4d; border-radius: 4px; font-size: 1rem; }
-button.secondary { background: #262d3b; }
-button.secondary:hover:not(:disabled) { background: #333b4d; }
-button.danger { background: #c0392b; }
+:root {
+  color-scheme: dark;
 
-.page { max-width: 900px; margin: 4vh auto; padding: 0 1rem; }
-.topbar { display: flex; justify-content: space-between; align-items: baseline; }
-.nav { display: flex; gap: 1rem; align-items: center; }
-.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
-.stat { display: flex; flex-direction: column; gap: .25rem; background: #181d27; border: 1px solid #262d3b; border-radius: 8px; padding: 1rem 1.25rem; }
-.stat.wide { margin-top: 1rem; }
-.stat-label { color: #9aa3b5; font-size: .85rem; }
-.stat-value { font-size: 1.6rem; font-weight: 600; font-variant-numeric: tabular-nums; }
-.income-text { color: #8fd19e; }
-.expense-text { color: #ff8a80; }
-.note { font-size: .85rem; margin: .5rem 0 0; }
-.budget-row { background: #181d27; border: 1px solid #262d3b; border-radius: 8px; padding: .9rem 1.1rem; margin-bottom: .75rem; }
-.budget-head, .budget-foot { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; }
-.budget-head { margin-bottom: .5rem; }
-.budget-foot { margin-top: .5rem; }
-.bar { height: 10px; background: #0f1218; border-radius: 5px; overflow: hidden; }
-.bar-fill { height: 100%; background: #4a7cf0; }
-.bar-fill.over { background: #e5534b; }
-.over-text { color: #ff8a80; font-weight: 600; }
-.actions-inline { display: flex; gap: .4rem; align-items: center; }
-.actions-inline button { padding: .35rem .6rem; font-size: .85rem; }
-.month-bar { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin: 1rem 0; }
+  --bg: #0a0c12;
+  --bg-raise: #0f121b;
+  --surface: #131722;
+  --surface-2: #1a1f2d;
+  --line: #242b3d;
+  --line-soft: #1a2030;
+
+  --text: #e8eaf2;
+  --text-dim: #a4abc0;
+  --muted: #7f879d;
+
+  --indigo: #7380ff;
+  --indigo-strong: #5662f0;
+  --indigo-soft: rgba(115, 128, 255, 0.14);
+  --violet: #a78bfa; /* logo seal and page eyebrow labels */
+  --violet-soft: rgba(167, 139, 250, 0.14);
+  --income: #39ff14; /* neon green: income amounts and bars */
+  --scarlet: #ff2e4d; /* crimson scarlet: expenses and over-budget text (readable on dark) */
+  --scarlet-deep: #d4153a; /* same hue, darker: expense bars and over-budget fills */
+  --green: #3fa268; /* forest green: success messages only */
+  --green-soft: rgba(63, 162, 104, 0.12);
+  --vermilion: #e2583e;
+  --vermilion-text: #ff8f7a;
+  --vermilion-soft: rgba(226, 88, 62, 0.12);
+
+  --content: 1080px; /* page content width: fixed */
+  --chrome: 2000px; /* header and footer width: effectively edge to edge up to 1080p, with side padding */
+  --radius: 12px;
+  --radius-sm: 8px;
+  --font-display: "Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --font-body: "Inter Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--text);
+  background:
+    radial-gradient(900px 420px at 85% -8%, rgba(115, 128, 255, 0.11), transparent 65%),
+    var(--bg);
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--indigo); text-decoration: none; }
+a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+:focus-visible { outline: 2px solid var(--indigo); outline-offset: 2px; }
+
+/* ---- Typography -------------------------------------------------------- */
+
+h1, h2 { font-family: var(--font-display); font-weight: 400; margin: 0; letter-spacing: -0.01em; }
+h1 { font-size: 3.25rem; line-height: 1.04; }
+h2 {
+  font-size: 1.7rem;
+  line-height: 1.15;
+  margin: 3.25rem 0 1.1rem;
+  padding-top: 1.4rem;
+  border-top: 1px solid var(--line);
+}
+/* A small rotated diamond, echoing a family crest (mon), before each section heading. */
+h2::before {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 0.7rem;
+  background: var(--vermilion);
+  transform: rotate(45deg) translateY(-3px);
+}
+
+.eyebrow {
+  margin: 0 0 0.9rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--violet);
+}
+/* The vermilion "ink stroke" before every eyebrow. */
+.eyebrow::before {
+  content: "";
+  display: inline-block;
+  width: 26px;
+  height: 2px;
+  margin-right: 0.75rem;
+  vertical-align: middle;
+  background: var(--violet);
+}
+
+.muted { color: var(--muted); }
+.note { font-size: 0.82rem; color: var(--muted); margin: 0.6rem 0 0; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---- Site header & navigation ------------------------------------------ */
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgba(10, 12, 18, 0.82);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line-soft);
+}
+.site-header-inner {
+  max-width: var(--chrome);
+  margin: 0 auto;
+  padding: 0.8rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+.brand-link { color: inherit; display: inline-flex; }
+.brand-link:hover { text-decoration: none; }
+.brand { display: inline-flex; align-items: center; gap: 0.7rem; }
+.seal {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  font-size: 1rem;
+  line-height: 1;
+  color: var(--violet);
+  border: 1.5px solid var(--violet);
+  border-radius: 6px;
+  background: var(--violet-soft);
+  transform: rotate(-4deg); /* like a hand-pressed seal */
+}
+.brand-name { font-family: var(--font-display); font-size: 1.7rem; line-height: 1; letter-spacing: -0.01em; color: var(--violet); }
+
+.site-nav { display: flex; align-items: center; gap: 0.25rem; flex: 1; }
+.site-nav > a {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9rem;
+  color: var(--text-dim);
+  border-bottom: 2px solid transparent;
+}
+.site-nav > a:hover { color: var(--text); text-decoration: none; }
+.site-nav > a.active { color: var(--violet); border-bottom-color: var(--violet); }
+/* Account menu: profile icon + panel (email and Log out) */
+.account { position: relative; margin-left: auto; }
+.account-button { display: grid; place-items: center; width: 40px; min-height: 40px; height: 40px; padding: 0; border-radius: 50%; }
+.account-button svg { width: 20px; height: 20px; }
+/* A plain dropdown: email, a divider, Log out */
+.account-panel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.5rem);
+  z-index: 20;
+  display: grid;
+  gap: 0.75rem;
+  width: 260px;
+  max-width: 90vw;
+  padding: 0.9rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.4);
+}
+.account-rule { height: 1px; background: var(--line); }
+.account-logout { width: 100%; }
+.account-panel p { margin: 0; }
+.account-label { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+.account-email { margin-top: 0.25rem; font-size: 0.92rem; color: var(--text); overflow-wrap: anywhere; }
+.menu-toggle { display: none; margin-left: auto; }
+
+/* ---- Page structure ----------------------------------------------------- */
+
+/* #root is a column so the footer sits at the bottom even on short pages */
+#root { min-height: 100vh; display: flex; flex-direction: column; }
+.page { flex: 1 0 auto; width: 100%; max-width: var(--content); margin: 0 auto; padding: 3rem 1.5rem 6rem; }
+.page-header { margin-bottom: 2.25rem; }
+
+.month-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; margin: 0 0 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--line-soft); }
+.month-bar strong { font-family: var(--font-display); font-weight: 400; font-size: 1.5rem; margin-left: 0.5rem; }
 .spacer { flex: 1; }
-.inline { display: flex; gap: .5rem; align-items: center; }
+.inline { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.inline-label { display: flex; flex-direction: column; gap: 0.25rem; font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+/* The small mono/uppercase styling is for the label text only; the controls use the normal body font */
+.inline-label select, .inline-label input { font-family: var(--font-body); font-size: 0.95rem; letter-spacing: normal; text-transform: none; }
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-.tx-form { background: #181d27; border: 1px solid #262d3b; border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 1rem; }
-.tx-form h2 { margin: 0; font-size: 1.1rem; }
 
-table { width: 100%; border-collapse: collapse; background: #181d27; border-radius: 8px; overflow: hidden; }
-th, td { padding: .6rem .75rem; text-align: left; border-bottom: 1px solid #262d3b; }
-th { color: #9aa3b5; font-weight: 500; font-size: .85rem; }
+/* ---- Footer -------------------------------------------------------------- */
+
+.site-footer { position: relative; margin-top: auto; background: var(--bg-raise); border-top: 1px solid var(--line-soft); }
+.footer-inner {
+  max-width: var(--chrome);
+  margin: 0 auto;
+  padding: 3.25rem 1.5rem 2.5rem;
+  display: grid;
+  grid-template-columns: 1.3fr 0.8fr 1.5fr;
+  gap: 3rem;
+}
+.footer-tagline { margin: 1.1rem 0 0.5rem; font-family: var(--font-display); font-size: 1.6rem; line-height: 1.15; }
+.footer-text { margin: 0; max-width: 34ch; font-size: 0.88rem; color: var(--muted); }
+.footer-heading { margin: 0 0 1rem; font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-dim); }
+.footer-col ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 0.6rem; }
+.footer-col a { color: var(--text-dim); font-size: 0.92rem; }
+.footer-col a:hover { color: var(--violet); }
+.footer-principles li { position: relative; padding-left: 1.2rem; font-size: 0.88rem; color: var(--muted); }
+.footer-principles strong { color: var(--text); font-weight: 600; }
+/* A small rotated diamond as the bullet */
+.footer-principles li::before { content: ""; position: absolute; left: 0; top: 0.55em; width: 5px; height: 5px; background: var(--vermilion); transform: rotate(45deg); }
+.footer-base {
+  max-width: var(--chrome);
+  margin: 0 auto;
+  padding: 1.25rem 1.5rem 1.75rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--line-soft);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+/* ---- Forms & buttons ---------------------------------------------------- */
+
+form { display: grid; gap: 1rem; }
+label { display: grid; gap: 0.35rem; font-size: 0.82rem; color: var(--text-dim); }
+
+input, select {
+  min-height: 42px;
+  padding: 0.6rem 0.8rem;
+  font: inherit;
+  font-size: 0.95rem;
+  color: var(--text);
+  background: var(--bg-raise);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+input::placeholder { color: var(--muted); }
+input:hover, select:hover { border-color: #323b52; }
+
+button {
+  min-height: 40px;
+  padding: 0.55rem 1.05rem;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 550;
+  color: #fff;
+  background: var(--indigo-strong);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+button:hover:not(:disabled) { background: var(--indigo); }
+button:disabled { opacity: 0.55; cursor: default; }
+button.secondary { color: var(--text); background: transparent; border-color: var(--line); }
+button.secondary:hover:not(:disabled) { background: var(--surface-2); border-color: var(--indigo); }
+button.danger { background: var(--vermilion); }
+button.danger:hover:not(:disabled) { background: #f0664b; }
+
+/* ---- Cards -------------------------------------------------------------- */
+
+.card, .tx-form, .stat, .budget-row {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.tx-form { padding: 1.5rem 1.6rem; margin-bottom: 1.5rem; }
+.tx-form h2 { font-size: 1.45rem; margin: 0; padding: 0; border: 0; }
+.tx-form h2::before { display: none; }
+
+/* Login / register */
+.card { width: 100%; max-width: 420px; margin: 12vh auto 4rem; padding: 2.25rem 2rem; }
+.card h1 { font-size: 2.1rem; margin: 1.6rem 0 1.4rem; }
+.card .brand { margin-bottom: 0.2rem; }
+
+/* Dashboard stat cards */
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
+.stat { display: flex; flex-direction: column; gap: 0.35rem; padding: 1.4rem 1.6rem; }
+.stat.wide { margin-top: 1.25rem; gap: 0.5rem; }
+.stat p { margin: 0; }
+.stat-label { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+.stat-value { font-family: var(--font-display); font-size: 2.7rem; line-height: 1.1; font-variant-numeric: lining-nums; }
+
+/* Budget cards */
+.budget-row { padding: 1.2rem 1.4rem; margin-bottom: 0.9rem; transition: border-color 0.15s; }
+.budget-row:hover { border-color: #33405c; }
+.budget-head, .budget-foot { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; }
+.budget-head { margin-bottom: 0.7rem; }
+.budget-head strong { font-family: var(--font-display); font-weight: 400; font-size: 1.35rem; }
+.budget-foot { margin-top: 0.7rem; font-size: 0.85rem; }
+.actions-inline { display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap; }
+.actions-inline button { min-height: 34px; padding: 0.3rem 0.7rem; font-size: 0.82rem; }
+
+.bar { height: 6px; background: var(--bg-raise); border-radius: 3px; overflow: hidden; }
+.bar-fill { height: 100%; background: #2f4fb0; border-radius: 3px; } /* navy; .over turns it red */
+.bar-fill.over { background: var(--scarlet-deep); }
+
+/* ---- Messages ----------------------------------------------------------- */
+
+.status { padding: 4rem 0; text-align: center; color: var(--muted); }
+.notice, .error { margin: 0 0 1.25rem; padding: 0.75rem 1rem; font-size: 0.9rem; border-radius: var(--radius-sm); border-left: 2px solid; }
+.notice { color: var(--green); background: var(--green-soft); border-color: var(--green); }
+.error { color: var(--vermilion-text); background: var(--vermilion-soft); border-color: var(--vermilion); }
+.status .error { display: inline-block; }
+.over-text, .expense-text, td.expense { color: var(--scarlet); }
+.over-text { font-weight: 600; }
+.income-text, td.income { color: var(--income); }
+
+/* ---- Tables ------------------------------------------------------------- */
+
+table { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+th, td { padding: 0.85rem 1rem; text-align: left; border-bottom: 1px solid var(--line-soft); font-size: 0.92rem; }
+th { font-family: var(--font-mono); font-size: 0.68rem; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); background: var(--bg-raise); }
+tbody tr:hover { background: var(--surface-2); }
+tbody tr:last-child td, tfoot tr:last-child th { border-bottom: 0; }
+tfoot th { color: var(--text); font-size: 0.8rem; border-top: 1px solid var(--line); background: var(--bg-raise); }
 .num { text-align: right; font-variant-numeric: tabular-nums; }
-td.income { color: #8fd19e; }
-td.expense { color: #ff8a80; }
-td.actions { display: flex; gap: .4rem; align-items: center; justify-content: flex-end; }
-td.actions button { padding: .35rem .6rem; font-size: .85rem; }
+td.actions { display: flex; gap: 0.4rem; align-items: center; justify-content: flex-end; }
+td.actions button { min-height: 34px; padding: 0.3rem 0.7rem; font-size: 0.82rem; }
+
+.cell-bar { display: block; min-width: 90px; height: 5px; margin-top: 0.4rem; background: var(--bg-raise); border-radius: 3px; overflow: hidden; }
+.cell-bar .fill { display: block; height: 100%; border-radius: 3px; }
+.fill.income { background: var(--income); }
+
+/* Share of spending: navy. Navy text alone would be unreadable on the dark background,
+   so the value is a navy pill with pale text, and the bar is navy to match. */
+.share {
+  display: inline-block;
+  padding: 0.1rem 0.6rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: #dbe4ff;
+  background: #1e3a8a;
+  border-radius: 999px;
+}
+.fill.share-fill { background: #2f4fb0; }
+/* Budget usage: navy at or under the limit, red once spending is over it. */
+.share.over { background: #b3122f; color: #ffe0e5; }
+.fill.spend { background: var(--scarlet-deep); }
+
+/* ---- Motion ------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: no-preference) {
+  button, input, select, .budget-row { transition: background-color 0.15s, border-color 0.15s, color 0.15s; }
+}
+
+/* ---- Mobile (and narrow windows) ---------------------------------------- */
+
+@media (max-width: 760px) {
+  h1 { font-size: 2.4rem; }
+  h2 { font-size: 1.45rem; margin-top: 2.5rem; }
+
+  .page { padding: 2rem 1rem 4.5rem; }
+  .footer-inner { grid-template-columns: 1fr; gap: 2.25rem; padding: 2.5rem 1rem 2rem; }
+  .footer-base { padding: 1.1rem 1rem 1.5rem; flex-direction: column; gap: 0.4rem; }
+  .page-header { margin-bottom: 1.6rem; }
+  .card { margin: 6vh 1rem 3rem; padding: 1.75rem 1.4rem; }
+
+  .grid-2 { grid-template-columns: 1fr; }
+  .tx-form { padding: 1.25rem 1.1rem; }
+  .month-bar { gap: 0.5rem; }
+  .month-bar strong { flex: 1 0 100%; margin: 0.4rem 0 0; }
+  .month-bar .spacer { display: none; }
+  .month-bar > button:not(.secondary) { flex: 1 0 100%; }
+  .inline-label { flex: 1 1 130px; }
+  .inline-label select, .inline-label input { width: 100%; }
+
+  .stat-value { font-size: 2.2rem; }
+  .budget-foot { flex-direction: column; align-items: flex-start; }
+
+  /* Bigger touch targets */
+  button, input, select { min-height: 46px; }
+  .actions-inline button, td.actions button { min-height: 40px; }
+
+  /* Wide tables scroll sideways inside themselves instead of breaking the page */
+  table { display: block; overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; }
+  td.actions { display: table-cell; text-align: right; }
+}
+
+/* ===========================================================================
+   Header & footer across screen sizes (phones up to 1080p / 1920x1080)
+   Order matters: later blocks win ties. Wide tiers first, then tablet, then the
+   header's folded menu, then small phones.
+   =========================================================================== */
+
+/* Laptop and up: the header and footer move out toward the screen edges (page content keeps its width) */
+@media (min-width: 1280px) {
+  .site-header-inner { padding: 0.9rem 2rem; gap: 2rem; }
+  .site-nav > a { padding: 0.55rem 0.9rem; font-size: 0.94rem; }
+  .footer-inner { padding: 3.75rem 2rem 3rem; gap: 3.5rem; }
+  .footer-base { padding-inline: 2rem; }
+}
+
+/* Large desktop (1600px): larger type and more breathing room */
+@media (min-width: 1600px) {
+  .site-header-inner { padding: 1rem 3rem; }
+  .brand .brand-name { font-size: 1.9rem; }
+  .brand .seal { width: 34px; height: 34px; font-size: 1.1rem; }
+  .site-nav > a { padding: 0.6rem 1rem; font-size: 1rem; }
+  .footer-inner { padding: 4.25rem 3rem 3.25rem; gap: 4.5rem; grid-template-columns: 1.4fr 0.8fr 1.6fr; }
+  .footer-tagline { font-size: 1.9rem; }
+  .footer-text, .footer-principles li { font-size: 0.95rem; }
+  .footer-col a { font-size: 1rem; }
+  .footer-base { padding-inline: 3rem; font-size: 0.76rem; }
+}
+
+/* Full HD (1920px) */
+@media (min-width: 1920px) {
+  .site-header-inner, .footer-inner, .footer-base { padding-inline: 4rem; }
+  .site-header-inner { padding-block: 1.1rem; }
+  .footer-inner { padding-top: 4.75rem; }
+}
+
+/* Tablet and small laptop: tighter header links; footer becomes two columns with the brand on top */
+@media (min-width: 761px) and (max-width: 1024px) {
+  .site-header-inner { padding: 0.75rem 1.5rem; gap: 1rem; }
+  .site-nav > a { padding: 0.5rem 0.55rem; font-size: 0.86rem; }
+  .footer-inner { grid-template-columns: 1fr 1fr; gap: 2.5rem; }
+  .footer-brand { grid-column: 1 / -1; }
+}
+
+/* Header collapses behind the Menu button up to 900px (the five links plus the account icon don't fit below that) */
+@media (max-width: 900px) {
+  .site-header-inner { padding: 0.65rem 1rem; gap: 1rem; flex-wrap: wrap; }
+  .menu-toggle { display: inline-flex; align-items: center; }
+  .site-nav { display: none; flex: 1 0 100%; flex-direction: column; align-items: stretch; gap: 0; padding: 0.4rem 0 0.6rem; border-top: 1px solid var(--line-soft); }
+  .site-nav.open { display: flex; }
+  .site-nav > a { padding: 0.85rem 0.25rem; border-bottom: 1px solid var(--line-soft); font-size: 1rem; }
+  .site-nav > a.active { border-bottom-color: var(--line-soft); color: var(--violet); }
+  /* Inside the folded menu the account panel opens inline instead of floating */
+  .account { margin: 0.9rem 0 0; }
+  .account-button { width: 46px; height: 46px; }
+  .account-panel { position: static; width: auto; margin-top: 0.6rem; max-width: none; box-shadow: none; }
+}
+
+/* Small phones */
+@media (max-width: 480px) {
+  .site-header-inner { padding-inline: 0.85rem; }
+  .brand .brand-name { font-size: 1.45rem; }
+  .brand .seal { width: 26px; height: 26px; font-size: 0.9rem; }
+  .footer-tagline { font-size: 1.4rem; }
+  .footer-text { max-width: none; }
+}

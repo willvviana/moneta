@@ -3,6 +3,7 @@ import {
   centsToInput,
   describeRemaining,
   formatCents,
+  formatShare,
   formatSignedCents,
   parseDollarsToCents,
   percentUsed,
@@ -98,6 +99,20 @@ describe("percentUsed", () => {
 
   it("a non-positive limit yields 0 instead of dividing by zero", () => {
     expect(percentUsed(100, 0)).toBe(0);
+  });
+});
+
+describe("formatShare", () => {
+  it.each([
+    [15000, 17500, "85%"],
+    [17500, 17500, "100%"],
+    [0, 17500, "0%"], // nothing spent
+    [1, 100000, "<1%"], // tiny but non-zero is not shown as 0%
+    [1, 3, "33%"],
+    [100, 0, "0%"], // zero total: explicit, no division by zero
+    [0, 0, "0%"],
+  ])("%d of %d reads %j", (part, total, text) => {
+    expect(formatShare(part, total)).toBe(text);
   });
 });
 
