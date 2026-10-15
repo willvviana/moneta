@@ -1,9 +1,9 @@
 /* =========================================================================
    Moneta design system
-   Dark ink background, indigo as the primary accent (links, focus, active nav),
+   Dark ink background, indigo as the primary accent (links, focus),
    forest green for income and success, vermilion (a hanko-seal red) reserved for
-   expenses, warnings and the small ink-stroke / diamond accents. Violet marks the
-   logo seal and the page eyebrow labels.
+   expenses, warnings and the small diamond accents. Navy marks the active nav,
+   the logo drop and the page eyebrow labels.
    ========================================================================= */
 
 :root {
@@ -23,8 +23,7 @@
   --indigo: #7380ff;
   --indigo-strong: #5662f0;
   --indigo-soft: rgba(115, 128, 255, 0.14);
-  --violet: #a78bfa; /* logo seal and page eyebrow labels */
-  --violet-soft: rgba(167, 139, 250, 0.14);
+  --navy: #5b7fd6; /* navy blue, lightened just enough to stay readable on the dark background: nav, logo, page eyebrow labels */
   --income: #39ff14; /* neon green: income amounts and bars */
   --scarlet: #ff2e4d; /* crimson scarlet: expenses and over-budget text (readable on dark) */
   --scarlet-deep: #d4153a; /* same hue, darker: expense bars and over-budget fills */
@@ -68,12 +67,12 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
 /* ---- Typography -------------------------------------------------------- */
 
 h1, h2 { font-family: var(--font-display); font-weight: 400; margin: 0; letter-spacing: -0.01em; }
-h1 { font-size: 3.25rem; line-height: 1.04; }
+h1 { font-size: 2.4rem; line-height: 1.08; }
 h2 {
-  font-size: 1.7rem;
+  font-size: 1.5rem;
   line-height: 1.15;
-  margin: 3.25rem 0 1.1rem;
-  padding-top: 1.4rem;
+  margin: 2.25rem 0 1rem;
+  padding-top: 1.1rem;
   border-top: 1px solid var(--line);
 }
 /* A small rotated diamond, echoing a family crest (mon), before each section heading. */
@@ -88,14 +87,14 @@ h2::before {
 }
 
 .eyebrow {
-  margin: 0 0 0.9rem;
+  margin: 0 0 0.5rem;
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--violet);
+  color: var(--navy);
 }
-/* The vermilion "ink stroke" before every eyebrow. */
+/* A white dash before every eyebrow. */
 .eyebrow::before {
   content: "";
   display: inline-block;
@@ -103,7 +102,7 @@ h2::before {
   height: 2px;
   margin-right: 0.75rem;
   vertical-align: middle;
-  background: var(--violet);
+  background: #fff;
 }
 
 .muted { color: var(--muted); }
@@ -123,41 +122,30 @@ h2::before {
 .site-header-inner {
   max-width: var(--chrome);
   margin: 0 auto;
-  padding: 0.8rem 1.5rem;
+  padding: 0.4rem 1.5rem;
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1.25rem;
 }
 .brand-link { color: inherit; display: inline-flex; }
 .brand-link:hover { text-decoration: none; }
-.brand { display: inline-flex; align-items: center; gap: 0.7rem; }
-.seal {
-  display: inline-grid;
-  place-items: center;
-  width: 30px;
-  height: 30px;
-  font-size: 1rem;
-  line-height: 1;
-  color: var(--violet);
-  border: 1.5px solid var(--violet);
-  border-radius: 6px;
-  background: var(--violet-soft);
-}
-.brand-name { font-family: var(--font-display); font-size: 1.7rem; line-height: 1; letter-spacing: -0.01em; color: var(--violet); }
+.brand { display: inline-flex; align-items: center; gap: 0.55rem; }
+.seal { display: block; width: 22px; height: 28px; color: var(--navy); } /* the logo drop (SVG) */
+.brand-name { font-family: var(--font-display); font-size: 1.35rem; line-height: 1; letter-spacing: -0.01em; color: var(--navy); }
 
 .site-nav { display: flex; align-items: center; gap: 0.25rem; flex: 1; }
 .site-nav > a {
-  padding: 0.5rem 0.75rem;
-  font-size: 0.9rem;
+  padding: 0.4rem 0.65rem;
+  font-size: 0.85rem;
   color: var(--text-dim);
   border-bottom: 2px solid transparent;
 }
 .site-nav > a:hover { color: var(--text); text-decoration: none; }
-.site-nav > a.active { color: var(--violet); border-bottom-color: var(--violet); }
+.site-nav > a.active { color: var(--navy); border-bottom-color: var(--navy); }
 /* Account menu: profile icon + panel (email and Log out) */
 .account { position: relative; margin-left: auto; }
-.account-button { display: grid; place-items: center; width: 40px; min-height: 40px; height: 40px; padding: 0; border-radius: 50%; }
-.account-button svg { width: 20px; height: 20px; }
+.account-button { display: grid; place-items: center; width: 32px; min-height: 32px; height: 32px; padding: 0; border-radius: 50%; }
+.account-button svg { width: 17px; height: 17px; }
 /* Same surface as the page cards and tables: --surface, 1px --line border, --radius corners, --line-soft dividers */
 .account-panel {
   position: absolute;
@@ -185,16 +173,17 @@ h2::before {
 
 /* #root is a column so the footer sits at the bottom even on short pages */
 #root { min-height: 100vh; display: flex; flex-direction: column; }
-.page { flex: 1 0 auto; width: 100%; max-width: var(--content); margin: 0 auto; padding: 3rem 1.5rem 6rem; }
-.page-header { margin-bottom: 2.25rem; }
+.page { flex: 1 0 auto; width: 100%; max-width: var(--content); margin: 0 auto; padding: 1.75rem 1.5rem 3rem; }
+/* Title block with a divider, so every page opens the same way */
+.page-header { margin-bottom: 1.5rem; padding-bottom: 1.1rem; border-bottom: 1px solid var(--line); }
 
-.month-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; margin: 0 0 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--line-soft); }
-.month-bar strong { font-family: var(--font-display); font-weight: 400; font-size: 1.5rem; margin-left: 0.5rem; }
+.month-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; margin: 0 0 1.25rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--line-soft); }
+.month-bar strong { font-family: var(--font-display); font-weight: 400; font-size: 1.35rem; margin-left: 0.5rem; }
 .spacer { flex: 1; }
 /* Reports: the h2 below already draws a top rule, so the bar skips its own divider */
 .month-bar.no-rule { border-bottom: 0; padding-bottom: 0; margin-bottom: 0; }
 /* ...and the first heading sits 1.5rem below the bar, the same gap as on Transactions and Budgets */
-.month-bar.no-rule ~ h2 { margin-top: 1.5rem; } /* every section heading on Reports, so the notes above them sit close to the line */
+.month-bar.no-rule ~ h2 { margin-top: 1.25rem; } /* every section heading on Reports, so the notes above them sit close to the line */
 /* A hint inside the bar takes its own full-width line directly under the controls */
 .month-bar .note { flex-basis: 100%; margin: 0.15rem 0 0; }
 .inline { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
@@ -209,7 +198,7 @@ h2::before {
 .filters .grow input { width: 100%; }
 .status button { margin-left: 0.5rem; }
 /* Add-category form: sits above the filter bar with clear space below it */
-.add-form { margin: 0 0 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--line-soft); }
+.add-form { margin: 0 0 1.25rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--line-soft); }
 /* Sortable column headers: look like the header text, behave like buttons */
 .sort-btn { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; font: inherit; letter-spacing: inherit; text-transform: inherit; color: inherit; }
 .sort-btn:focus-visible { outline: 2px solid var(--accent, currentColor); outline-offset: 3px; }
@@ -224,32 +213,32 @@ th.num .sort-btn { flex-direction: row-reverse; }
 .footer-inner {
   max-width: var(--chrome);
   margin: 0 auto;
-  padding: 3.25rem 1.5rem 2.5rem;
+  padding: 1.75rem 1.5rem 1.4rem;
   display: grid;
   grid-template-columns: 1.3fr 0.8fr 1.5fr;
-  gap: 3rem;
+  gap: 2rem;
 }
-.footer-tagline { margin: 1.1rem 0 0.5rem; font-family: var(--font-display); font-size: 1.6rem; line-height: 1.15; }
-.footer-text { margin: 0; max-width: 34ch; font-size: 0.88rem; color: var(--muted); }
-.footer-heading { margin: 0 0 1rem; font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-dim); }
-.footer-col ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 0.6rem; }
-.footer-col a { color: var(--text-dim); font-size: 0.92rem; }
-.footer-col a:hover { color: var(--violet); }
-.footer-principles li { position: relative; padding-left: 1.2rem; font-size: 0.88rem; color: var(--muted); }
+.footer-tagline { margin: 0.7rem 0 0.35rem; font-family: var(--font-display); font-size: 1.2rem; line-height: 1.15; }
+.footer-text { margin: 0; max-width: 38ch; font-size: 0.8rem; color: var(--muted); }
+.footer-heading { margin: 0 0 0.7rem; font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-dim); }
+.footer-col ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 0.4rem; }
+.footer-col a { color: var(--text-dim); font-size: 0.85rem; }
+.footer-col a:hover { color: var(--navy); }
+.footer-principles li { position: relative; padding-left: 1.1rem; font-size: 0.8rem; color: var(--muted); }
 .footer-principles strong { color: var(--text); font-weight: 600; }
 /* A small rotated diamond as the bullet */
 .footer-principles li::before { content: ""; position: absolute; left: 0; top: 0.55em; width: 5px; height: 5px; background: var(--vermilion); transform: rotate(45deg); }
 .footer-base {
   max-width: var(--chrome);
   margin: 0 auto;
-  padding: 1.25rem 1.5rem 1.75rem;
+  padding: 0.7rem 1.5rem 0.9rem;
   display: flex;
   justify-content: space-between;
   gap: 1rem;
   flex-wrap: wrap;
   border-top: 1px solid var(--line-soft);
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   letter-spacing: 0.06em;
   color: var(--muted);
 }
@@ -298,7 +287,7 @@ button.danger:hover:not(:disabled) { background: #f0664b; }
   border: 1px solid var(--line);
   border-radius: var(--radius);
 }
-.tx-form { padding: 1.5rem 1.6rem; margin-bottom: 1.5rem; }
+.tx-form { padding: 1.25rem 1.4rem; margin-bottom: 1.25rem; }
 .tx-form h2 { font-size: 1.45rem; margin: 0; padding: 0; border: 0; }
 .tx-form h2::before { display: none; }
 
@@ -309,11 +298,11 @@ button.danger:hover:not(:disabled) { background: #f0664b; }
 
 /* Dashboard stat cards */
 .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
-.stat { display: flex; flex-direction: column; gap: 0.35rem; padding: 1.4rem 1.6rem; }
-.stat.wide { margin-top: 1.25rem; gap: 0.5rem; }
+.stat { display: flex; flex-direction: column; gap: 0.3rem; padding: 1.1rem 1.3rem; }
+.stat.wide { margin-top: 1rem; gap: 0.5rem; }
 .stat p { margin: 0; }
 .stat-label { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
-.stat-value { font-family: var(--font-display); font-size: 2.7rem; line-height: 1.1; font-variant-numeric: lining-nums; }
+.stat-value { font-family: var(--font-display); font-size: 2.2rem; line-height: 1.1; font-variant-numeric: lining-nums; }
 
 /* Budget cards */
 .budget-row { padding: 1.2rem 1.4rem; margin-bottom: 0.9rem; transition: border-color 0.15s; }
@@ -343,7 +332,7 @@ button.danger:hover:not(:disabled) { background: #f0664b; }
 /* ---- Tables ------------------------------------------------------------- */
 
 table { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
-th, td { padding: 0.85rem 1rem; text-align: left; border-bottom: 1px solid var(--line-soft); font-size: 0.92rem; }
+th, td { padding: 0.65rem 1rem; text-align: left; border-bottom: 1px solid var(--line-soft); font-size: 0.92rem; }
 th { font-family: var(--font-mono); font-size: 0.68rem; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); background: var(--bg-raise); }
 tbody tr:hover { background: var(--surface-2); }
 tbody tr:last-child td, tfoot tr:last-child th { border-bottom: 0; }
@@ -382,13 +371,13 @@ td.actions button { min-height: 34px; padding: 0.3rem 0.7rem; font-size: 0.82rem
 /* ---- Mobile (and narrow windows) ---------------------------------------- */
 
 @media (max-width: 760px) {
-  h1 { font-size: 2.4rem; }
-  h2 { font-size: 1.45rem; margin-top: 2.5rem; }
+  h1 { font-size: 2rem; }
+  h2 { font-size: 1.35rem; margin-top: 1.75rem; }
 
-  .page { padding: 2rem 1rem 4.5rem; }
-  .footer-inner { grid-template-columns: 1fr; gap: 2.25rem; padding: 2.5rem 1rem 2rem; }
-  .footer-base { padding: 1.1rem 1rem 1.5rem; flex-direction: column; gap: 0.4rem; }
-  .page-header { margin-bottom: 1.6rem; }
+  .page { padding: 1.25rem 1rem 2.5rem; }
+  .footer-inner { grid-template-columns: 1fr; gap: 1.5rem; padding: 1.5rem 1rem 1.25rem; }
+  .footer-base { padding: 0.7rem 1rem 1rem; flex-direction: column; gap: 0.25rem; }
+  .page-header { margin-bottom: 1.1rem; padding-bottom: 0.9rem; }
   .card { margin: 6vh 1rem 3rem; padding: 1.75rem 1.4rem; }
 
   .grid-2 { grid-template-columns: 1fr; }
@@ -400,7 +389,7 @@ td.actions button { min-height: 34px; padding: 0.3rem 0.7rem; font-size: 0.82rem
   .inline-label { flex: 1 1 130px; }
   .inline-label select, .inline-label input { width: 100%; }
 
-  .stat-value { font-size: 2.2rem; }
+  .stat-value { font-size: 1.9rem; }
   .budget-foot { flex-direction: column; align-items: flex-start; }
 
   /* Bigger touch targets */
@@ -418,50 +407,31 @@ td.actions button { min-height: 34px; padding: 0.3rem 0.7rem; font-size: 0.82rem
    header's folded menu, then small phones.
    =========================================================================== */
 
-/* Laptop and up: the header and footer move out toward the screen edges (page content keeps its width) */
+/* Wide screens: header and footer stay compact and only gain side padding (page content keeps its width) */
 @media (min-width: 1280px) {
-  .site-header-inner { padding: 0.9rem 2rem; gap: 2rem; }
-  .site-nav > a { padding: 0.55rem 0.9rem; font-size: 0.94rem; }
-  .footer-inner { padding: 3.75rem 2rem 3rem; gap: 3.5rem; }
-  .footer-base { padding-inline: 2rem; }
+  .site-header-inner, .footer-inner, .footer-base { padding-inline: 2rem; }
 }
 
-/* Large desktop (1600px): larger type and more breathing room */
-@media (min-width: 1600px) {
-  .site-header-inner { padding: 1rem 3rem; }
-  .brand .brand-name { font-size: 1.9rem; }
-  .brand .seal { width: 34px; height: 34px; font-size: 1.1rem; }
-  .site-nav > a { padding: 0.6rem 1rem; font-size: 1rem; }
-  .footer-inner { padding: 4.25rem 3rem 3.25rem; gap: 4.5rem; grid-template-columns: 1.4fr 0.8fr 1.6fr; }
-  .footer-tagline { font-size: 1.9rem; }
-  .footer-text, .footer-principles li { font-size: 0.95rem; }
-  .footer-col a { font-size: 1rem; }
-  .footer-base { padding-inline: 3rem; font-size: 0.76rem; }
-}
-
-/* Full HD (1920px) */
 @media (min-width: 1920px) {
   .site-header-inner, .footer-inner, .footer-base { padding-inline: 4rem; }
-  .site-header-inner { padding-block: 1.1rem; }
-  .footer-inner { padding-top: 4.75rem; }
 }
 
 /* Tablet and small laptop: tighter header links; footer becomes two columns with the brand on top */
 @media (min-width: 761px) and (max-width: 1024px) {
-  .site-header-inner { padding: 0.75rem 1.5rem; gap: 1rem; }
-  .site-nav > a { padding: 0.5rem 0.55rem; font-size: 0.86rem; }
+  .site-header-inner { padding: 0.4rem 1.5rem; gap: 1rem; }
+  .site-nav > a { padding: 0.4rem 0.5rem; font-size: 0.82rem; }
   .footer-inner { grid-template-columns: 1fr 1fr; gap: 2.5rem; }
   .footer-brand { grid-column: 1 / -1; }
 }
 
 /* Header collapses behind the Menu button up to 900px (the five links plus the account icon don't fit below that) */
 @media (max-width: 900px) {
-  .site-header-inner { padding: 0.65rem 1rem; gap: 1rem; flex-wrap: wrap; }
+  .site-header-inner { padding: 0.45rem 1rem; gap: 1rem; flex-wrap: wrap; }
   .menu-toggle { display: inline-flex; align-items: center; }
   .site-nav { display: none; flex: 1 0 100%; flex-direction: column; align-items: stretch; gap: 0; padding: 0.4rem 0 0.6rem; border-top: 1px solid var(--line-soft); }
   .site-nav.open { display: flex; }
   .site-nav > a { padding: 0.85rem 0.25rem; border-bottom: 1px solid var(--line-soft); font-size: 1rem; }
-  .site-nav > a.active { border-bottom-color: var(--line-soft); color: var(--violet); }
+  .site-nav > a.active { border-bottom-color: var(--line-soft); color: var(--navy); }
   /* Inside the folded menu the account panel opens inline instead of floating */
   .account { margin: 0.9rem 0 0; }
   .account-button { width: 46px; height: 46px; }
@@ -471,8 +441,8 @@ td.actions button { min-height: 34px; padding: 0.3rem 0.7rem; font-size: 0.82rem
 /* Small phones */
 @media (max-width: 480px) {
   .site-header-inner { padding-inline: 0.85rem; }
-  .brand .brand-name { font-size: 1.45rem; }
-  .brand .seal { width: 26px; height: 26px; font-size: 0.9rem; }
-  .footer-tagline { font-size: 1.4rem; }
+  .brand .brand-name { font-size: 1.25rem; }
+  .brand .seal { width: 19px; height: 24px; }
+  .footer-tagline { font-size: 1.1rem; }
   .footer-text { max-width: none; }
 }
