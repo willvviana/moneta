@@ -21,6 +21,19 @@ export function centsToInput(cents: number): string {
   return `${(cents - rem) / 100}.${String(rem).padStart(2, "0")}`;
 }
 
+// How much of the limit is used, as a whole percent (floored). May exceed 100 when over budget.
+// BigInt keeps the multiplication exact for any safe-integer cents; this is presentation only,
+// the server owns the real numbers (spent, remaining).
+export function percentUsed(spentCents: number, limitCents: number): number {
+  if (limitCents <= 0) return 0;
+  return Number((BigInt(spentCents) * 100n) / BigInt(limitCents));
+}
+
+// 18000 -> "$180.00 left", -12000 -> "Over by $120.00". Zero remaining is "at the limit", not over.
+export function describeRemaining(remainingCents: number): string {
+  return remainingCents < 0 ? `Over by ${formatCents(-remainingCents)}` : `${formatCents(remainingCents)} left`;
+}
+
 // 1234567 -> "$12,345.67". (cents - rem) is an exact multiple of 100, so the division is exact.
 export function formatCents(cents: number): string {
   const rem = cents % 100;

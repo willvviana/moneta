@@ -22,6 +22,17 @@ button.danger { background: #c0392b; }
 
 .page { max-width: 900px; margin: 4vh auto; padding: 0 1rem; }
 .topbar { display: flex; justify-content: space-between; align-items: baseline; }
+.nav { display: flex; gap: 1rem; }
+.budget-row { background: #181d27; border: 1px solid #262d3b; border-radius: 8px; padding: .9rem 1.1rem; margin-bottom: .75rem; }
+.budget-head, .budget-foot { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; }
+.budget-head { margin-bottom: .5rem; }
+.budget-foot { margin-top: .5rem; }
+.bar { height: 10px; background: #0f1218; border-radius: 5px; overflow: hidden; }
+.bar-fill { height: 100%; background: #4a7cf0; }
+.bar-fill.over { background: #e5534b; }
+.over-text { color: #ff8a80; font-weight: 600; }
+.actions-inline { display: flex; gap: .4rem; align-items: center; }
+.actions-inline button { padding: .35rem .6rem; font-size: .85rem; }
 .month-bar { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin: 1rem 0; }
 .spacer { flex: 1; }
 .inline { display: flex; gap: .5rem; align-items: center; }

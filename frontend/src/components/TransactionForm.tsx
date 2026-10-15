@@ -1,6 +1,7 @@
-import { useState, type FormEvent, type KeyboardEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { centsToInput, parseDollarsToCents } from "../money";
-import { createCategory, type Category, type Transaction, type TransactionInput } from "../transactions";
+import { type Category, type Transaction, type TransactionInput } from "../transactions";
+import { CategorySelect } from "./CategorySelect";
 
 interface Props {
   categories: Category[];
@@ -18,7 +19,6 @@ export function TransactionForm({ categories, initial, defaultDate, onSubmit, on
   const [date, setDate] = useState(initial?.date ?? defaultDate);
   const [categoryId, setCategoryId] = useState(initial?.categoryId ?? categories[0]?.id ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
-  const [newCategory, setNewCategory] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -42,36 +42,6 @@ export function TransactionForm({ categories, initial, defaultDate, onSubmit, on
     }
   }
 
-  async function addCategory() {
-    const name = newCategory.trim();
-    if (!name) return;
-    setError(null);
-    // Typing a name that already exists (ignoring case) just selects it. The server stays the
-    // authority: if our list was stale, its 409 below is still shown.
-    const existing = categories.find((c) => c.name.toLowerCase() === name.toLowerCase());
-    if (existing) {
-      setCategoryId(existing.id);
-      setNewCategory("");
-      return;
-    }
-    try {
-      const created = await createCategory(name);
-      onCategoryCreated(created);
-      setCategoryId(created.id);
-      setNewCategory("");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not create the category.");
-    }
-  }
-
-  // Enter inside the category box adds the category; it must not submit the transaction form.
-  function onCategoryKey(e: KeyboardEvent<HTMLInputElement>) {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      void addCategory();
-    }
-  }
-
   return (
     <form className="tx-form" onSubmit={handleSubmit}>
       <h2>{initial ? "Edit transaction" : "Add transaction"}</h2>
@@ -91,31 +61,14 @@ export function TransactionForm({ categories, initial, defaultDate, onSubmit, on
           Date
           <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
         </label>
-        <label>
-          Category
-          <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
-            {categories.length === 0 && <option value="">No categories yet</option>}
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </label>
       </div>
-      <div className="inline">
-        <input
-          value={newCategory}
-          onChange={(e) => setNewCategory(e.target.value)}
-          onKeyDown={onCategoryKey}
-          placeholder="New category name"
-          maxLength={50}
-          aria-label="New category name"
-        />
-        <button type="button" className="secondary" onClick={() => void addCategory()}>
-          Add category
-        </button>
-      </div>
+      <CategorySelect
+        categories={categories}
+        value={categoryId}
+        onChange={setCategoryId}
+        onCategoryCreated={onCategoryCreated}
+        onError={setError}
+      />
       <label>
         Description (optional)
         <input value={description} onChange={(e) => setDescription(e.target.value)} maxLength={500} />

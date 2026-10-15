@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { centsToInput, formatCents, parseDollarsToCents } from "./money";
+import { centsToInput, describeRemaining, formatCents, parseDollarsToCents, percentUsed } from "./money";
 
 // CONTRACT of parseDollarsToCents (what these tests pin down):
 //  - Input is trimmed. Accepted shape: 1-12 digits, then optionally "." or "," and 1-2 digits.
@@ -62,6 +62,35 @@ describe("formatCents", () => {
     [99999999999999, "$999,999,999,999.99"],
   ])("formats %d cents as %s", (cents, text) => {
     expect(formatCents(cents)).toBe(text);
+  });
+});
+
+describe("percentUsed", () => {
+  it.each([
+    [32000, 50000, 64], // the $320 of $500 example
+    [0, 50000, 0],
+    [50000, 50000, 100], // exactly at the limit
+    [62000, 50000, 124], // over budget: not capped here (the bar caps it visually)
+    [1, 3, 33], // floored, never rounded up
+    [99999999999999, 100000000000000, 99], // large values stay exact (BigInt)
+  ])("spent %d of limit %d is %d%%", (spent, limit, pct) => {
+    expect(percentUsed(spent, limit)).toBe(pct);
+  });
+
+  it("a non-positive limit yields 0 instead of dividing by zero", () => {
+    expect(percentUsed(100, 0)).toBe(0);
+  });
+});
+
+describe("describeRemaining", () => {
+  it.each([
+    [18000, "$180.00 left"],
+    [0, "$0.00 left"], // at the limit is not "over"
+    [1, "$0.01 left"],
+    [-12000, "Over by $120.00"],
+    [-1, "Over by $0.01"],
+  ])("%d cents remaining reads %j", (remaining, text) => {
+    expect(describeRemaining(remaining)).toBe(text);
   });
 });
 

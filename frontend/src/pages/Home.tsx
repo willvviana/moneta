@@ -13,6 +13,9 @@ export function Home() {
       <p>
         <Link to="/transactions">Transactions</Link>
       </p>
+      <p>
+        <Link to="/budgets">Budgets</Link>
+      </p>
       <button onClick={() => void logout()}>Log out</button>
     </main>
   );

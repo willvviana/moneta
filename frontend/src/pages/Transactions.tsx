@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { ApiError } from "../api";
+import { MonthPicker } from "../components/MonthPicker";
 import { TransactionForm } from "../components/TransactionForm";
 import { formatCents } from "../money";
-import { currentMonth, isMonth, monthLabel, monthRange, shiftMonth, todayISO } from "../month";
+import { currentMonth, monthLabel, monthRange, todayISO } from "../month";
 import {
   createTransaction,
   deleteTransaction,
@@ -98,26 +99,15 @@ export function Transactions() {
     <main className="page">
       <header className="topbar">
         <h1>Transactions</h1>
-        <Link to="/">Home</Link>
+        <nav className="nav">
+          <Link to="/">Home</Link>
+          <Link to="/budgets">Budgets</Link>
+        </nav>
       </header>
 
-      <div className="month-bar">
-        <button className="secondary" onClick={() => setMonth(shiftMonth(month, -1))} aria-label="Previous month">
-          ‹
-        </button>
-        <input
-          type="month"
-          value={month}
-          onChange={(e) => isMonth(e.target.value) && setMonth(e.target.value)}
-          aria-label="Month"
-        />
-        <button className="secondary" onClick={() => setMonth(shiftMonth(month, 1))} aria-label="Next month">
-          ›
-        </button>
-        <strong>{monthLabel(month)}</strong>
-        <span className="spacer" />
+      <MonthPicker month={month} onChange={setMonth}>
         {!editor && loadState === "ready" && <button onClick={() => setEditor({ mode: "new" })}>Add transaction</button>}
-      </div>
+      </MonthPicker>
 
       {notice && (
         <p role={notice.kind === "error" ? "alert" : "status"} className={notice.kind === "error" ? "error" : "notice"}>
