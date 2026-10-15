@@ -4,7 +4,7 @@
 
 Moneta is a full-stack personal finance app for tracking income and expenses, setting monthly budgets, and understanding spending through a dashboard and reports. It emphasizes exact money arithmetic, per-user data isolation, and automated tests.
 
-**Status:** Version 1 features are built and tested locally (transactions, budgets, dashboard, reports, accounts). Continuous integration runs on GitHub Actions. A Render Blueprint (`render.yaml`) is prepared, but the app is not deployed yet. See [docs/DECISIONS.md](docs/DECISIONS.md) for what was decided and why.
+**Status:** Version 1 features are built and tested locally (transactions, budgets, dashboard, reports, accounts). Continuous integration runs on GitHub Actions. It is deployed on Render's free plan (Blueprint: `render.yaml`); see "Deployment (Render)" for the free-plan limits, including the database that expires 30 days after its creation on 2026-10-15. See [docs/DECISIONS.md](docs/DECISIONS.md) for what was decided and why.
 
 ## Features
 
@@ -127,7 +127,7 @@ cd backend && npm start             # serves the API and frontend/dist
 
 ## Deployment (Render)
 
-`render.yaml` describes one web service (Express serving the API and the built frontend) and one PostgreSQL database. In the Render dashboard choose **New, then Blueprint**, and select this repository. Migrations run automatically on every start. The free plans sleep when idle, and the free database expires after 30 days with no backups; see [docs/DECISIONS.md](docs/DECISIONS.md) ("Deploying to Render") for the trade-offs and the one setting still to be measured after the first deploy (`TRUST_PROXY`).
+`render.yaml` describes one web service (Express serving the API and the built frontend) and one PostgreSQL database. In the Render dashboard choose **New, then Blueprint**, and select this repository. Migrations run automatically on every start. The free plans sleep when idle, and the free database expires after 30 days with no backups; see [docs/DECISIONS.md](docs/DECISIONS.md) ("Deploying to Render") for the trade-offs and how `TRUST_PROXY` (set to 3) was measured.
 
 ## Configuration
 
