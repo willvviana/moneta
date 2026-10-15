@@ -2,7 +2,13 @@ import { createHash, randomBytes } from "node:crypto";
 import argon2 from "argon2";
 import { AppError } from "../errors.js";
 import { deleteSession, insertSession, touchValidSession } from "../repositories/sessions.js";
-import { findUserByEmail, findUserById, insertUser, type PublicUser } from "../repositories/users.js";
+import {
+  findUserByEmail,
+  findUserById,
+  insertUser,
+  setPasswordAndRevokeSessions,
+  type PublicUser,
+} from "../repositories/users.js";
 
 // Service layer: business rules for authentication.
 
@@ -13,7 +19,13 @@ const hashToken = (token: string): Buffer => createHash("sha256").update(token).
 
 // Hash of a throwaway password. Verifying against it when the email is unknown
 // makes "no such user" take about as long as "wrong password" (timing side channel).
-const dummyHash = argon2.hash("not-a-real-password", { type: argon2.argon2id });
+const hashPassword = (password: string) => argon2.hash(password, { type: argon2.argon2id });
+const dummyHash = hashPassword("not-a-real-password");
+
+// Verifies against the user's hash, or the dummy hash when the user doesn't exist (same cost either way).
+async function verifyPassword(found: { password_hash: string } | undefined, password: string) {
+  return argon2.verify(found?.password_hash ?? (await dummyHash), password);
+}
 
 async function startSession(user: PublicUser) {
   const token = randomBytes(32).toString("base64url"); // 256 bits of randomness
@@ -23,7 +35,7 @@ async function startSession(user: PublicUser) {
 }
 
 export async function register(email: string, password: string) {
-  const passwordHash = await argon2.hash(password, { type: argon2.argon2id });
+  const passwordHash = await hashPassword(password);
   let user: PublicUser;
   try {
     user = await insertUser(email, passwordHash);
@@ -39,9 +51,22 @@ export async function register(email: string, password: string) {
 
 export async function login(email: string, password: string) {
   const found = await findUserByEmail(email);
-  const ok = await argon2.verify(found?.password_hash ?? (await dummyHash), password);
+  const ok = await verifyPassword(found, password);
   if (!found || !ok) throw new AppError(401, "Invalid email or password"); // same message for both
   return startSession({ id: found.id, email: found.email });
+}
+
+// Works while signed out, so the caller must prove who they are with the CURRENT password.
+// Unknown email and wrong password give the same answer (and take similar time), like login.
+export async function changePassword(email: string, currentPassword: string, newPassword: string): Promise<void> {
+  const found = await findUserByEmail(email);
+  const ok = await verifyPassword(found, currentPassword);
+  if (!found || !ok) throw new AppError(401, "Invalid email or current password");
+  if (newPassword === currentPassword) throw new AppError(400, "The new password must be different from the current one");
+
+  const passwordHash = await hashPassword(newPassword);
+  // All sessions end: anyone holding an old session (or the old password) is locked out.
+  await setPasswordAndRevokeSessions(found.id, passwordHash);
 }
 
 export async function logout(token: string): Promise<void> {

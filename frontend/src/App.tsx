@@ -4,6 +4,7 @@ import { Layout } from "./components/Layout";
 import { AuthPage } from "./pages/AuthPage";
 import { Budgets } from "./pages/Budgets";
 import { Categories } from "./pages/Categories";
+import { ChangePassword } from "./pages/ChangePassword";
 import { Home } from "./pages/Home";
 import { Reports } from "./pages/Reports";
 import { Transactions } from "./pages/Transactions";
@@ -17,6 +18,7 @@ export function App() {
           <Route element={<PublicOnlyRoute />}>
             <Route path="/login" element={<AuthPage mode="login" />} />
             <Route path="/register" element={<AuthPage mode="register" />} />
+            <Route path="/change-password" element={<ChangePassword />} />
           </Route>
           <Route element={<ProtectedRoute />}>
             <Route element={<Layout />}>

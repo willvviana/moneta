@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ApiError } from "../api";
 import { useAuth } from "../auth";
 import { Brand } from "../components/Brand";
+import { MIN_PASSWORD_LENGTH } from "../passwordPolicy";
 
 // One form for both screens; only the title, endpoint and link text differ.
 export function AuthPage({ mode }: { mode: "login" | "register" }) {
@@ -19,6 +20,7 @@ export function AuthPage({ mode }: { mode: "login" | "register" }) {
   const from = (location.state as { from?: { pathname: string } } | null)?.from?.pathname ?? "/";
 
   const expired = (location.state as { expired?: boolean } | null)?.expired === true;
+  const passwordChanged = (location.state as { passwordChanged?: boolean } | null)?.passwordChanged === true;
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -39,6 +41,7 @@ export function AuthPage({ mode }: { mode: "login" | "register" }) {
       <Brand />
       <h1>{isLogin ? "Log in to Moneta" : "Create your Moneta account"}</h1>
       {expired && <p className="notice">Your session expired. Please log in again.</p>}
+      {passwordChanged && <p className="notice" role="status">Password changed. Log in with your new password.</p>}
       <form onSubmit={onSubmit}>
         <label>
           Email
@@ -51,11 +54,11 @@ export function AuthPage({ mode }: { mode: "login" | "register" }) {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             autoComplete={isLogin ? "current-password" : "new-password"}
-            minLength={isLogin ? undefined : 12}
+            minLength={isLogin ? undefined : MIN_PASSWORD_LENGTH}
             required
           />
         </label>
-        {!isLogin && <small>At least 12 characters.</small>}
+        {!isLogin && <small>At least {MIN_PASSWORD_LENGTH} characters.</small>}
         {error && <p role="alert" className="error">{error}</p>}
         <button type="submit" disabled={submitting}>
           {submitting ? "Please wait…" : isLogin ? "Log in" : "Create account"}
@@ -63,7 +66,9 @@ export function AuthPage({ mode }: { mode: "login" | "register" }) {
       </form>
       <p>
         {isLogin ? (
-          <>No account? <Link to="/register">Register</Link></>
+          <>
+            No account? <Link to="/register">Register</Link> · <Link to="/change-password">Change password</Link>
+          </>
         ) : (
           <>Already registered? <Link to="/login">Log in</Link></>
         )}
