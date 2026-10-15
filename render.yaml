@@ -17,7 +17,10 @@ services:
     runtime: node
     # Free web services spin down after 15 minutes without traffic; the next request takes about a minute.
     plan: free
-    buildCommand: npm --prefix frontend ci && npm --prefix frontend run build && npm --prefix backend ci && npm --prefix backend run build
+    # --include=dev is required: NODE_ENV=production (set below) also applies DURING the build, so a plain
+    # `npm ci` would skip TypeScript and Vite, which the build needs (first deploy failed with "Cannot find
+    # type definition file for 'vite/client'").
+    buildCommand: npm --prefix frontend ci --include=dev && npm --prefix frontend run build && npm --prefix backend ci --include=dev && npm --prefix backend run build
     # Migrations run on every start, before the server listens. They are idempotent (already-applied ones
     # are skipped), and a failed migration stops the start, so the old version keeps serving.
     startCommand: cd backend && npm run migrate -- up && npm start
