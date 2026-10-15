@@ -50,6 +50,15 @@ React UI  ->  Express routes  ->  services (business rules)  ->  repositories (S
 - Passwords: argon2id. Failed logins are rate-limited; "no such user" and "wrong password" return the same error.
 - **Same-site deployment** (dev: Vite proxies `/api` to Express; prod: one domain or reverse proxy). Platform choice deferred.
 
+## Budgets (Phase 2, ACCEPTED)
+
+- Monthly budgets only. One budget per (user, category, month); `month` stored as the first day of the month.
+- Spending = SUM of **expense** transactions for the user and category with date in `[month_start, next_month_start)`, computed in SQL (`repositories/spending.ts`, the single definition; Dashboard and Reports build on it). Income never counts.
+- `remaining = limit - spent`; negative means over budget and is shown, not hidden.
+- API: `GET /api/budgets?month=YYYY-MM`, `PUT /api/budgets` (create-or-replace), `DELETE /api/budgets/:id`. Ownership as for transactions (404 for others' records, composite FK for categories).
+- A category used by transactions OR budgets cannot be deleted (DB foreign key; API returns 409).
+- Dates and months are restricted to years 1900-2099 (PostgreSQL has no year 0).
+
 ## Open items
 
 - (Resolved) Migrations: `node-pg-migrate` via CLI, plain `.sql` files in `db/migrations` with `-- Up Migration` / `-- Down Migration` markers. Applied with `npm run migrate -- up` from `backend/`. Postgres no longer auto-runs them. Applied migrations are tracked in the `pgmigrations` table. Never edit an applied migration; add a new one.

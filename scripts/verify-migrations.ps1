@@ -19,8 +19,9 @@ try { Exec node node_modules\node-pg-migrate\bin\node-pg-migrate.js --migrations
 finally { Pop-Location; $env:PGDATABASE = $original }
 
 # Sanity check: refuse to compare unless both migrations were really applied to the scratch DB.
+$expected = (Get-ChildItem db\migrations\*.sql).Count
 $applied = (docker compose exec -T db psql -U moneta -d moneta_verify -tA -c "SELECT count(*) FROM pgmigrations").Trim()
-if ($applied -ne "2") { DbSql "DROP DATABASE moneta_verify"; throw "expected 2 applied migrations in moneta_verify, found '$applied'" }
+if ($applied -ne "$expected") { DbSql "DROP DATABASE moneta_verify"; throw "expected $expected applied migrations in moneta_verify, found '$applied'" }
 
 $diff = Compare-Object (Dump "moneta") (Dump "moneta_verify")
 DbSql "DROP DATABASE moneta_verify"

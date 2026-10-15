@@ -29,8 +29,8 @@ export async function remove(userId: string, id: string) {
   try {
     if (!(await repo.deleteCategory(userId, id))) throw new AppError(404, "Category not found");
   } catch (err) {
-    // 23503: the composite FK refuses to delete a category that transactions still use.
-    if (pgErrorCode(err) === "23503") throw new AppError(409, "Category is used by transactions");
+    // 23503: a composite FK refuses to delete a category that transactions or budgets still use.
+    if (pgErrorCode(err) === "23503") throw new AppError(409, "Category is used by transactions or budgets");
     throw err;
   }
 }

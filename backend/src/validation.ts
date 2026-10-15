@@ -9,7 +9,9 @@ export const isoDate = z
   .refine((s) => {
     const d = new Date(`${s}T00:00:00Z`);
     return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === s;
-  }, "not a real calendar date");
+  }, "not a real calendar date")
+  // PostgreSQL has no year 0 and would throw (-> 500). Keep to a sane, supported range.
+  .refine((s) => Number(s.slice(0, 4)) >= 1900 && Number(s.slice(0, 4)) <= 2099, "year must be 1900-2099");
 
 // BIGINT ids travel as strings (JS numbers can't represent all of them). Max 15 digits keeps us in range.
 export const idString = z.string().regex(/^\d{1,15}$/, "invalid id");

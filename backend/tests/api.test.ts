@@ -143,6 +143,12 @@ describe("transactions CRUD and validation", () => {
     expect((await u.post("/api/transactions").send({ ...validTx(cat), type: "refund" })).status).toBe(400);
   });
 
+  it("rejects dates outside 1900-2099 (PostgreSQL has no year 0; must be 400, not 500)", async () => {
+    expect((await u.post("/api/transactions").send({ ...validTx(cat), date: "0000-01-01" })).status).toBe(400);
+    expect((await u.post("/api/transactions").send({ ...validTx(cat), date: "2100-01-01" })).status).toBe(400);
+    expect((await u.get("/api/transactions?from=0000-01-01&to=0001-01-01")).status).toBe(400);
+  });
+
   it("rejects an empty patch", async () => {
     const id = (await u.post("/api/transactions").send(validTx(cat))).body.transaction.id;
     expect((await u.patch(`/api/transactions/${id}`).send({})).status).toBe(400);
