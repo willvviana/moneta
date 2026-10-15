@@ -1,6 +1,7 @@
 import cookieParser from "cookie-parser";
 import express, { type NextFunction, type Request, type Response } from "express";
 import helmet from "helmet";
+import path from "node:path";
 import { pool } from "./db.js";
 import { parseAppOrigin, parseTrustProxy } from "./config.js";
 import { AppError, safeLogDetails } from "./errors.js";
@@ -8,6 +9,7 @@ import { checkOrigin } from "./middleware/auth.js";
 import { authRouter } from "./routes/auth.js";
 import { budgetsRouter } from "./routes/budgets.js";
 import { categoriesRouter } from "./routes/categories.js";
+import { mountFrontend } from "./frontend.js";
 import { dashboardRouter } from "./routes/dashboard.js";
 import { reportsRouter } from "./routes/reports.js";
 import { transactionsRouter } from "./routes/transactions.js";
@@ -48,6 +50,14 @@ app.use("/api/transactions", transactionsRouter);
 app.use("/api/budgets", budgetsRouter);
 app.use("/api/dashboard", dashboardRouter);
 app.use("/api/reports", reportsRouter);
+
+// Unknown API paths answer with JSON, never with the frontend's HTML.
+app.use("/api", (_req, res) => {
+  res.status(404).json({ error: "Not found" });
+});
+
+// The built React app (frontend/dist), when it exists. FRONTEND_DIST overrides the default location.
+mountFrontend(app, process.env.FRONTEND_DIST ?? path.resolve(process.cwd(), "../frontend/dist"));
 
 // Central error handler (Express 5 forwards rejected async handlers here).
 // Only AppError messages reach the client; everything else is a generic 500.

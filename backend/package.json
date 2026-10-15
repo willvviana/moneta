@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
+    "start": "node dist/index.js",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "migrate": "node-pg-migrate --migrations-dir ../db/migrations --migration-file-language sql"
