@@ -2,13 +2,24 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { PageHeader } from "../components/PageHeader";
 import { SortableTh } from "../components/SortableTh";
 import { matchesName } from "../filters";
-import { CATEGORY_FIRST_DIR, DEFAULT_CATEGORY_SORT, sortCategoryRows, type CategorySortKey, type SortState } from "../sort";
+import {
+  CATEGORY_FIRST_DIR,
+  DEFAULT_CATEGORY_SORT,
+  DEFAULT_MONTH_SORT,
+  MONTH_FIRST_DIR,
+  sortCategoryRows,
+  sortMonthRows,
+  type CategorySortKey,
+  type MonthSortKey,
+  type SortState,
+} from "../sort";
 import { formatCents, formatShare, formatSignedCents, percentUsed } from "../money";
 import { currentMonth, isMonth, monthLabel, presetRange, rangeProblem, type Preset } from "../month";
 import { getOverTime, getSpendingByCategory, type CategoryReport, type OverTimeReport } from "../reports";
 
-type PresetChoice = Preset | "custom";
+type PresetChoice = Preset | "month" | "custom";
 const PRESETS: { value: PresetChoice; label: string }[] = [
+  { value: "month", label: "Single month" },
   { value: "last3", label: "Last 3 months" },
   { value: "last6", label: "Last 6 months" },
   { value: "last12", label: "Last 12 months" },
@@ -28,6 +39,7 @@ export function Reports() {
   const [loadError, setLoadError] = useState("");
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState<SortState<CategorySortKey>>(DEFAULT_CATEGORY_SORT);
+  const [monthSort, setMonthSort] = useState<SortState<MonthSortKey>>(DEFAULT_MONTH_SORT);
   const latest = useRef(0);
 
   const problem = rangeProblem(range.from, range.to);
@@ -55,7 +67,14 @@ export function Reports() {
 
   function choosePreset(value: PresetChoice) {
     setPreset(value);
-    if (value !== "custom") setRange(presetRange(value, currentMonth()));
+    // "Single month" keeps the month you were already looking at (the end of the range) as from = to.
+    if (value === "month") setRange((r) => ({ from: r.to, to: r.to }));
+    else if (value !== "custom") setRange(presetRange(value, currentMonth()));
+  }
+
+  function setSingleMonth(value: string) {
+    if (!isMonth(value)) return; // ignore a cleared/partial month input
+    setRange({ from: value, to: value }); // the range is whole months with both ends included
   }
 
   function setMonthField(field: "from" | "to", value: string) {
@@ -71,7 +90,7 @@ export function Reports() {
     <main className="page">
       <PageHeader eyebrow="Analysis" title="Reports" />
 
-      <div className="month-bar">
+      <div className="month-bar no-rule">
         <label className="inline-label">
           Period
           <select value={preset} onChange={(e) => choosePreset(e.target.value as PresetChoice)}>
@@ -82,16 +101,27 @@ export function Reports() {
             ))}
           </select>
         </label>
-        <label className="inline-label">
-          From
-          <input type="month" value={range.from} onChange={(e) => setMonthField("from", e.target.value)} />
-        </label>
-        <label className="inline-label">
-          To
-          <input type="month" value={range.to} onChange={(e) => setMonthField("to", e.target.value)} />
-        </label>
+        {preset === "month" ? (
+          <label className="inline-label">
+            Month
+            <input type="month" value={range.to} onChange={(e) => setSingleMonth(e.target.value)} />
+          </label>
+        ) : (
+          <>
+            <label className="inline-label">
+              From
+              <input type="month" value={range.from} onChange={(e) => setMonthField("from", e.target.value)} />
+            </label>
+            <label className="inline-label">
+              To
+              <input type="month" value={range.to} onChange={(e) => setMonthField("to", e.target.value)} />
+            </label>
+          </>
+        )}
+        <p className="muted note">
+          {preset === "month" ? "One whole month." : "Whole months, both ends included (at most 60 months)."}
+        </p>
       </div>
-      <p className="muted note">Whole months, both ends included (at most 60 months).</p>
 
       {problem && (
         <p role="alert" className="error">
@@ -191,14 +221,14 @@ export function Reports() {
             <caption className="sr-only">Monthly income, expenses and net cash flow</caption>
             <thead>
               <tr>
-                <th>Month</th>
-                <th>Income</th>
-                <th>Expenses</th>
-                <th className="num">Net cash flow</th>
+                <SortableTh label="Month" column="month" sort={monthSort} firstDir={MONTH_FIRST_DIR.month} onSort={setMonthSort} />
+                <SortableTh label="Income" column="income" sort={monthSort} firstDir={MONTH_FIRST_DIR.income} onSort={setMonthSort} />
+                <SortableTh label="Expenses" column="expenses" sort={monthSort} firstDir={MONTH_FIRST_DIR.expenses} onSort={setMonthSort} />
+                <SortableTh label="Net cash flow" column="net" sort={monthSort} firstDir={MONTH_FIRST_DIR.net} onSort={setMonthSort} className="num" />
               </tr>
             </thead>
             <tbody>
-              {overTime.months.map((m) => (
+              {sortMonthRows(overTime.months, monthSort).map((m) => (
                 <tr key={m.month}>
                   <td>{monthLabel(m.month)}</td>
                   <td>

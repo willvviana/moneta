@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
-import { isMonth, monthLabel, shiftMonth } from "../month";
+import { isMonth, shiftMonth } from "../month";
 
-// Shared month selector: previous/next buttons, a month input, and a readable label.
+// Shared month selector: previous/next buttons around a month input (which already shows the month by name).
 // `children` is rendered on the right (e.g. an "Add" button).
 export function MonthPicker({
   month,
@@ -26,7 +26,6 @@ export function MonthPicker({
       <button className="secondary" onClick={() => onChange(shiftMonth(month, 1))} aria-label="Next month">
         ›
       </button>
-      <strong>{monthLabel(month)}</strong>
       <span className="spacer" />
       {children}
     </div>
