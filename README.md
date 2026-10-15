@@ -4,7 +4,7 @@
 
 Moneta is a full-stack personal finance app for tracking income and expenses, setting monthly budgets, and understanding spending through a dashboard and reports. It emphasizes exact money arithmetic, per-user data isolation, and automated tests.
 
-**Status:** Version 1 features are built and tested locally (transactions, budgets, dashboard, reports, accounts). Not deployed yet; continuous integration is not set up yet. See [docs/DECISIONS.md](docs/DECISIONS.md) for what was decided and why.
+**Status:** Version 1 features are built and tested locally (transactions, budgets, dashboard, reports, accounts). Continuous integration runs on GitHub Actions. A Render Blueprint (`render.yaml`) is prepared, but the app is not deployed yet. See [docs/DECISIONS.md](docs/DECISIONS.md) for what was decided and why.
 
 ## Features
 
@@ -125,14 +125,19 @@ npm --prefix backend run build      # writes backend/dist
 cd backend && npm start             # serves the API and frontend/dist
 ```
 
+## Deployment (Render)
+
+`render.yaml` describes one web service (Express serving the API and the built frontend) and one PostgreSQL database. In the Render dashboard choose **New, then Blueprint**, and select this repository. Migrations run automatically on every start. The free plans sleep when idle, and the free database expires after 30 days with no backups; see [docs/DECISIONS.md](docs/DECISIONS.md) ("Deploying to Render") for the trade-offs and the one setting still to be measured after the first deploy (`TRUST_PROXY`).
+
 ## Configuration
 
 | Variable | Where | Purpose |
 |---|---|---|
 | `PGHOST`, `PGPORT`, `PGUSER`, `PGDATABASE`, `PGPASSWORD` | backend | Database connection. `.env.op` supplies them; the password is an `op://` reference. |
 | `PORT` | backend | Port to listen on (default 3000). |
+| `DATABASE_URL` | backend | Database connection string. When set it is used instead of the `PG*` variables (Render provides the database this way). |
 | `NODE_ENV` | backend | `production` turns on the `Secure` cookie flag and requires `APP_ORIGIN`. |
-| `APP_ORIGIN` | backend | The exact origin of the app, e.g. `https://moneta.example.com` (no path, https in production). Used for the CSRF origin check. Required in production. |
+| `APP_ORIGIN` | backend | The exact origin of the app, e.g. `https://moneta.example.com` (no path, https in production). Used for the CSRF origin check. Required in production, unless `RENDER_EXTERNAL_URL` (set by Render) is present. |
 | `TRUST_PROXY` | backend | Number of reverse-proxy hops in front of the app (1 to 99). Set it behind a proxy so rate limits see real client IPs. Leave it unset when not behind one. |
 | `FRONTEND_DIST` | backend | Folder with the built frontend (default `../frontend/dist`). |
 | `REGISTER_RATE_LIMIT` | backend | Registrations per IP per 15 minutes (default 10). The test suite raises it. |
