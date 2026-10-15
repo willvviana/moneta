@@ -1,4 +1,5 @@
 import { randomBytes, randomUUID } from "node:crypto";
+import { Pool } from "pg";
 import request from "supertest";
 import { afterAll, describe, expect, it, vi } from "vitest";
 // vi.hoisted runs before the imports below, so the limiter is created with limit 10.
@@ -50,6 +51,25 @@ describe("safeLogDetails", () => {
     const logged = safeLogDetails(err);
     expect(logged.code).toBe("23505");
     expect(JSON.stringify(logged)).not.toContain("someone@example.test");
+  });
+});
+
+describe("database pool", () => {
+  it("without a listener an idle-connection error would be thrown (this is what would crash the server)", () => {
+    expect(() => new Pool().emit("error", new Error("terminating connection"))).toThrow();
+  });
+
+  it("our pool logs such an error, without user data, instead of throwing", () => {
+    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const err = Object.assign(new Error("terminating connection due to administrator command"), {
+      code: "57P01",
+      detail: "Key (email)=(someone@example.test) ...",
+    });
+    expect(() => pool.emit("error", err)).not.toThrow();
+    const logged = JSON.stringify(spy.mock.calls);
+    spy.mockRestore();
+    expect(logged).toContain("57P01");
+    expect(logged).not.toContain("someone@example.test");
   });
 });
 

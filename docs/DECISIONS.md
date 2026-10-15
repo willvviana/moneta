@@ -80,6 +80,7 @@ Audit baseline: every query is scoped by `user_id`, inputs are `.strict()` zod s
 | Unlimited account creation | `/register` limited to 10 per 15 min per IP (`REGISTER_RATE_LIMIT` overrides; the tests raise it) | Each registration costs an argon2 hash: a cheap CPU-exhaustion and spam vector. |
 | PII in logs | Unexpected errors are logged via `safeLogDetails` (name, SQLSTATE, message, stack; never pg's `detail`) | `detail` contains values such as `Key (email)=(a@b.com)`. |
 | Expired sessions accumulate | Hourly `deleteExpiredSessions()` | They are already unusable; this only keeps the table small. |
+| Idle database connection errors crash the server | `pool.on("error")` logs them (via `safeLogDetails`) and lets the pool replace the connection | In Node an `error` event with no listener is thrown. Managed databases can drop idle connections at any time (restarts, suspend-when-idle). Found by review while comparing external Postgres providers; covered by tests that show a bare `Pool` throws and ours does not. |
 
 Known and accepted for now: rate limits are per IP only (no per-account lockout, so distributed guessing is not stopped); registration reveals whether an email exists (409 vs 201); there is no password reset or email verification.
 
