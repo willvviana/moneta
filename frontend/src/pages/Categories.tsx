@@ -2,6 +2,9 @@ import { useCallback, useEffect, useRef, useState, type FormEvent } from "react"
 import { Link } from "react-router-dom";
 import { ApiError } from "../api";
 import { PageHeader } from "../components/PageHeader";
+import { SortableTh } from "../components/SortableTh";
+import { matchesName } from "../filters";
+import { DEFAULT_NAME_SORT, sortByName, type NameSortKey, type SortState } from "../sort";
 import { deleteCategory, listCategories, renameCategory, type Category } from "../transactions";
 
 type Notice = { kind: "ok" | "error"; text: string } | null;
@@ -19,6 +22,8 @@ export function Categories() {
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [notice, setNotice] = useState<Notice>(null);
+  const [search, setSearch] = useState("");
+  const [sort, setSort] = useState<SortState<NameSortKey>>(DEFAULT_NAME_SORT);
   const latest = useRef(0);
 
   const load = useCallback(async (showSpinner: boolean) => {
@@ -97,6 +102,13 @@ export function Categories() {
     if (refresh) await load(false);
   }
 
+  const visible = sortByName(
+    categories.filter((c) => matchesName(c.name, search)),
+    (c) => c.name,
+    sort.dir,
+  );
+  const searching = search.trim() !== "";
+
   return (
     <main className="page">
       <PageHeader eyebrow="Structure" title="Categories" />
@@ -120,15 +132,43 @@ export function Categories() {
         </p>
       )}
       {loadState === "ready" && categories.length > 0 && (
+        <>
+          <div className="filters" role="search" aria-label="Filter categories">
+            <label className="inline-label grow">
+              Search name
+              <input type="search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="e.g. groc" />
+            </label>
+            {searching && (
+              <button type="button" className="secondary" onClick={() => setSearch("")}>
+                Clear filters
+              </button>
+            )}
+          </div>
+          {searching && (
+            <p className="muted note">
+              Showing {visible.length} of {categories.length} categories.
+            </p>
+          )}
+        </>
+      )}
+      {loadState === "ready" && categories.length > 0 && visible.length === 0 && (
+        <p className="status">
+          No categories match "{search.trim()}".{" "}
+          <button className="secondary" onClick={() => setSearch("")}>
+            Clear filters
+          </button>
+        </p>
+      )}
+      {loadState === "ready" && visible.length > 0 && (
         <table>
           <thead>
             <tr>
-              <th>Name</th>
+              <SortableTh label="Name" column="name" sort={sort} firstDir="asc" onSort={setSort} />
               <th />
             </tr>
           </thead>
           <tbody>
-            {categories.map((c) => (
+            {visible.map((c) => (
               <tr key={c.id}>
                 {editingId === c.id ? (
                   <td colSpan={2}>

@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { PageHeader } from "../components/PageHeader";
+import { SortableTh } from "../components/SortableTh";
+import { matchesName } from "../filters";
+import { CATEGORY_FIRST_DIR, DEFAULT_CATEGORY_SORT, sortCategoryRows, type CategorySortKey, type SortState } from "../sort";
 import { formatCents, formatShare, formatSignedCents, percentUsed } from "../money";
 import { currentMonth, isMonth, monthLabel, presetRange, rangeProblem, type Preset } from "../month";
 import { getOverTime, getSpendingByCategory, type CategoryReport, type OverTimeReport } from "../reports";
@@ -23,6 +26,8 @@ export function Reports() {
   const [overTime, setOverTime] = useState<OverTimeReport | null>(null);
   const [loadState, setLoadState] = useState<"loading" | "ready" | "error">("loading");
   const [loadError, setLoadError] = useState("");
+  const [search, setSearch] = useState("");
+  const [sort, setSort] = useState<SortState<CategorySortKey>>(DEFAULT_CATEGORY_SORT);
   const latest = useRef(0);
 
   const problem = rangeProblem(range.from, range.to);
@@ -114,17 +119,46 @@ export function Reports() {
           {byCategory.categories.length === 0 ? (
             <p className="muted">No spending in this period.</p>
           ) : (
+            <>
+              <div className="filters" role="search" aria-label="Filter spending by category">
+                <label className="inline-label grow">
+                  Search category
+                  <input type="search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="e.g. rent" />
+                </label>
+                {search.trim() !== "" && (
+                  <button type="button" className="secondary" onClick={() => setSearch("")}>
+                    Clear filters
+                  </button>
+                )}
+              </div>
+              {search.trim() !== "" && (
+                <p className="muted note">
+                  Showing {byCategory.categories.filter((c) => matchesName(c.categoryName, search)).length} of{" "}
+                  {byCategory.categories.length} categories. Shares and the total still cover all spending.
+                </p>
+              )}
+              {byCategory.categories.every((c) => !matchesName(c.categoryName, search)) && (
+                <p className="status">
+                  No categories match "{search.trim()}".{" "}
+                  <button className="secondary" onClick={() => setSearch("")}>
+                    Clear filters
+                  </button>
+                </p>
+              )}
             <table>
               <caption className="sr-only">Spending by category, largest first</caption>
               <thead>
                 <tr>
-                  <th>Category</th>
-                  <th className="num">Spent</th>
-                  <th>Share of spending</th>
+                  <SortableTh label="Category" column="category" sort={sort} firstDir={CATEGORY_FIRST_DIR.category} onSort={setSort} />
+                  <SortableTh label="Spent" column="spent" sort={sort} firstDir={CATEGORY_FIRST_DIR.spent} onSort={setSort} className="num" />
+                  <SortableTh label="Share of spending" column="share" sort={sort} firstDir={CATEGORY_FIRST_DIR.share} onSort={setSort} />
                 </tr>
               </thead>
               <tbody>
-                {byCategory.categories.map((c) => {
+                {sortCategoryRows(
+                  byCategory.categories.filter((c) => matchesName(c.categoryName, search)),
+                  sort,
+                ).map((c) => {
                   const pct = percentUsed(c.spentCents, byCategory.totalSpentCents);
                   return (
                     <tr key={c.categoryId}>
@@ -148,6 +182,7 @@ export function Reports() {
                 </tr>
               </tfoot>
             </table>
+            </>
           )}
           <p className="muted note">Expenses only, including categories without a budget. Income is not spending.</p>
 

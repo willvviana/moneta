@@ -2,7 +2,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { PageHeader } from "../components/PageHeader";
 import { ApiError } from "../api";
 import { MonthPicker } from "../components/MonthPicker";
+import { SortableTh } from "../components/SortableTh";
+import { DEFAULT_TX_SORT, TX_FIRST_DIR, sortTransactions, type SortState, type TxSortKey } from "../sort";
+import { TransactionFilters } from "../components/TransactionFilters";
 import { TransactionForm } from "../components/TransactionForm";
+import { EMPTY_TX_FILTERS, amountRangeProblem, filterTransactions, hasActiveTxFilters, type TxFilters } from "../filters";
 import { formatCents } from "../money";
 import { currentMonth, monthLabel, monthRange, todayISO } from "../month";
 import {
@@ -31,6 +35,8 @@ export function Transactions() {
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [notice, setNotice] = useState<Notice>(null);
+  const [filters, setFilters] = useState<TxFilters>(EMPTY_TX_FILTERS); // kept when you change month
+  const [sort, setSort] = useState<SortState<TxSortKey>>(DEFAULT_TX_SORT); // kept when you change month
   const latest = useRef(0);
 
   // Always re-reads from the server, so what's on screen is what the API says is stored.
@@ -95,6 +101,13 @@ export function Transactions() {
   const categoryName = (id: string) => categories.find((c) => c.id === id)?.name ?? "Unknown";
   const defaultDate = todayISO().startsWith(month) ? todayISO() : `${month}-01`;
 
+  // A selected category that no longer exists (e.g. deleted in another tab) is ignored, not "no matches".
+  const effective: TxFilters =
+    filters.categoryId && !categories.some((c) => c.id === filters.categoryId) ? { ...filters, categoryId: "" } : filters;
+  const filtersActive = hasActiveTxFilters(effective);
+  // Filter first, then sort what is left.
+  const visible = sortTransactions(filterTransactions(transactions, effective), sort, categoryName);
+
   return (
     <main className="page">
       <PageHeader eyebrow="Ledger" title="Transactions" />
@@ -130,19 +143,44 @@ export function Transactions() {
       )}
       {loadState === "ready" && transactions.length === 0 && <p className="status">No transactions in {monthLabel(month)}.</p>}
       {loadState === "ready" && transactions.length > 0 && (
+        <>
+          <TransactionFilters
+            filters={effective}
+            onChange={setFilters}
+            categories={categories}
+            problem={amountRangeProblem(effective.min, effective.max)}
+            active={filtersActive}
+            onClear={() => setFilters(EMPTY_TX_FILTERS)}
+          />
+          {filtersActive && (
+            <p className="muted note">
+              Showing {visible.length} of {transactions.length} transactions in {monthLabel(month)}.
+            </p>
+          )}
+        </>
+      )}
+      {loadState === "ready" && transactions.length > 0 && visible.length === 0 && (
+        <p className="status">
+          No transactions match these filters.{" "}
+          <button className="secondary" onClick={() => setFilters(EMPTY_TX_FILTERS)}>
+            Clear filters
+          </button>
+        </p>
+      )}
+      {loadState === "ready" && visible.length > 0 && (
         <table>
           <thead>
             <tr>
-              <th>Date</th>
-              <th>Description</th>
-              <th>Category</th>
-              <th>Type</th>
-              <th className="num">Amount</th>
+              <SortableTh label="Date" column="date" sort={sort} firstDir={TX_FIRST_DIR.date} onSort={setSort} />
+              <SortableTh label="Description" column="description" sort={sort} firstDir={TX_FIRST_DIR.description} onSort={setSort} />
+              <SortableTh label="Category" column="category" sort={sort} firstDir={TX_FIRST_DIR.category} onSort={setSort} />
+              <SortableTh label="Type" column="type" sort={sort} firstDir={TX_FIRST_DIR.type} onSort={setSort} />
+              <SortableTh label="Amount" column="amount" sort={sort} firstDir={TX_FIRST_DIR.amount} onSort={setSort} className="num" />
               <th />
             </tr>
           </thead>
           <tbody>
-            {transactions.map((tx) => (
+            {visible.map((tx) => (
               <tr key={tx.id}>
                 <td>{tx.date}</td>
                 <td>{tx.description || <span className="muted">—</span>}</td>

@@ -196,6 +196,20 @@ h2::before {
 .inline-label { display: flex; flex-direction: column; gap: 0.25rem; font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
 /* The small mono/uppercase styling is for the label text only; the controls use the normal body font */
 .inline-label select, .inline-label input { font-family: var(--font-body); font-size: 0.95rem; letter-spacing: normal; text-transform: none; }
+/* Table filter bar (transactions, categories, budgets, category report) */
+.filters { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.6rem; margin: 0 0 1rem; }
+.filters .grow { flex: 1 1 200px; }
+.filters .narrow { width: 7.5rem; }
+.filters .narrow input { width: 100%; }
+.filters .grow input { width: 100%; }
+.status button { margin-left: 0.5rem; }
+
+/* Sortable column headers: look like the header text, behave like buttons */
+.sort-btn { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; font: inherit; letter-spacing: inherit; text-transform: inherit; color: inherit; }
+.sort-btn:focus-visible { outline: 2px solid var(--accent, currentColor); outline-offset: 3px; }
+.sort-arrow { font-size: 0.7em; opacity: 0.4; }
+.sort-btn.active .sort-arrow, .sort-btn:hover .sort-arrow { opacity: 1; }
+th.num .sort-btn { flex-direction: row-reverse; }
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 
 /* ---- Footer -------------------------------------------------------------- */

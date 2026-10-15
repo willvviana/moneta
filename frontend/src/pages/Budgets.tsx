@@ -4,6 +4,8 @@ import { ApiError } from "../api";
 import { deleteBudget, listBudgets, setBudget, type Budget } from "../budgets";
 import { BudgetForm } from "../components/BudgetForm";
 import { MonthPicker } from "../components/MonthPicker";
+import { filterBudgets, type BudgetStatus } from "../filters";
+import { sortByName, type SortDir } from "../sort";
 import { describeRemaining, formatCents, percentUsed } from "../money";
 import { currentMonth, monthLabel } from "../month";
 import { listCategories, type Category } from "../transactions";
@@ -23,6 +25,8 @@ export function Budgets() {
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [notice, setNotice] = useState<Notice>(null);
+  const [status, setStatus] = useState<BudgetStatus>("all"); // kept when you change month
+  const [nameDir, setNameDir] = useState<SortDir>("asc");
   const latest = useRef(0);
 
   // Always re-reads from the server: spent/remaining are computed there, never on the client.
@@ -76,7 +80,8 @@ export function Budgets() {
   }
 
   const categoryName = (id: string) => categories.find((c) => c.id === id)?.name ?? "Unknown";
-  const rows = [...budgets].sort((a, b) => categoryName(a.categoryId).localeCompare(categoryName(b.categoryId)));
+  const sorted = sortByName(budgets, (b) => categoryName(b.categoryId), nameDir);
+  const rows = filterBudgets(sorted, status);
 
   return (
     <main className="page">
@@ -111,7 +116,46 @@ export function Budgets() {
           <button onClick={() => void load(month, true)}>Retry</button>
         </div>
       )}
-      {loadState === "ready" && rows.length === 0 && <p className="status">No budgets for {monthLabel(month)}.</p>}
+      {loadState === "ready" && sorted.length === 0 && <p className="status">No budgets for {monthLabel(month)}.</p>}
+      {loadState === "ready" && sorted.length > 0 && (
+        <>
+          <div className="filters" role="search" aria-label="Filter budgets">
+            <label className="inline-label">
+              Status
+              <select value={status} onChange={(e) => setStatus(e.target.value as BudgetStatus)}>
+                <option value="all">All budgets</option>
+                <option value="over">Over budget</option>
+                <option value="within">Within limit</option>
+              </select>
+            </label>
+            <label className="inline-label">
+              Sort by name
+              <select value={nameDir} onChange={(e) => setNameDir(e.target.value as SortDir)}>
+                <option value="asc">A to Z</option>
+                <option value="desc">Z to A</option>
+              </select>
+            </label>
+            {status !== "all" && (
+              <button type="button" className="secondary" onClick={() => setStatus("all")}>
+                Clear filters
+              </button>
+            )}
+          </div>
+          {status !== "all" && (
+            <p className="muted note">
+              Showing {rows.length} of {sorted.length} budgets in {monthLabel(month)}.
+            </p>
+          )}
+        </>
+      )}
+      {loadState === "ready" && sorted.length > 0 && rows.length === 0 && (
+        <p className="status">
+          No budgets match this filter.{" "}
+          <button className="secondary" onClick={() => setStatus("all")}>
+            Clear filters
+          </button>
+        </p>
+      )}
       {loadState === "ready" &&
         rows.map((b) => {
           const over = b.remainingCents < 0;
