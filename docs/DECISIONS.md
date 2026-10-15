@@ -87,6 +87,20 @@ Known and accepted for now: rate limits are per IP only (no per-account lockout,
 
 Startup now validates configuration (`config.ts`): `APP_ORIGIN` must be a bare origin (https in production) and `TRUST_PROXY` a hop count from 1 to 99; anything else stops the server instead of being ignored.
 
+## Deploying to Render (Phase 5, ACCEPTED, not yet deployed)
+
+Defined in `render.yaml` (a Blueprint): one Node web service plus one PostgreSQL 16 database. Facts below come from Render's docs as read on 2026-10-15; check them again before relying on them, because plans and limits change.
+
+- **Database connection:** Render exposes a database to a service as a connection string (`fromDatabase` offers `connectionString`, `user`, `password`, `database`; no separate host or port). So the app accepts `DATABASE_URL` (`db.ts`) and the migration tool reads the same variable. The internal URL is used (private network, optional TLS). The test suite **refuses to run if `DATABASE_URL` is set**, so a production URL can never be pointed at by tests.
+- **Migrations** run in the start command (`npm run migrate -- up && npm start`), not in `preDeployCommand`: the docs do not say whether free services support it, and the start command works on every plan. Trade-off: with several instances two could migrate at once; `node-pg-migrate` takes a database lock, and a free service has one instance anyway. `node-pg-migrate` therefore moved from devDependencies to dependencies.
+- **`NODE_ENV=production` exists only at runtime on Render**, so the build installs dev dependencies and `tsc` is available.
+- **`APP_ORIGIN`** falls back to `RENDER_EXTERNAL_URL` (the service's own https URL), so the first deploy needs no manual value. Set `APP_ORIGIN` explicitly when a custom domain is added.
+- **Health check:** `/health` queries PostgreSQL, so a release that cannot reach the database is not promoted.
+- **Free plan consequences:** the web service sleeps after 15 minutes of no traffic (about a minute to wake) and has 750 instance hours per month; the free database **expires 30 days after creation** (14-day grace period, then deleted) and has **no backups**. Acceptable for a portfolio demo; use a paid database plan to keep data. This is the owner's cost decision, not mine.
+- **`TRUST_PROXY` is not set yet, deliberately.** Render's proxy appends to `X-Forwarded-For` instead of replacing it, community reports give differing hop counts (one reported 3), and no official figure was found. A wrong number lets clients spoof their IP and dodge the rate limits. With it unset the limiters key on the proxy's IP: safe, but all users share one bucket. Plan: after the first deploy, measure the real hop count with a request carrying a fake `X-Forwarded-For`, then set `TRUST_PROXY`.
+
+Verified locally (not on Render): migrations through `DATABASE_URL` on an empty database, boot with `NODE_ENV=production` and only `RENDER_EXTERNAL_URL`, `/health` ok, the app page served, the session cookie `HttpOnly; Secure; SameSite=Lax`, and a request with a foreign `Origin` rejected with 403.
+
 ## Open items
 
 - (Resolved) Migrations: `node-pg-migrate` via CLI, plain `.sql` files in `db/migrations` with `-- Up Migration` / `-- Down Migration` markers. Applied with `npm run migrate -- up` from `backend/`. Postgres no longer auto-runs them. Applied migrations are tracked in the `pgmigrations` table. Never edit an applied migration; add a new one.
