@@ -1,6 +1,7 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./auth";
 import { Layout } from "./components/Layout";
+import { ScrollToTop } from "./components/ScrollToTop";
 import { AuthPage } from "./pages/AuthPage";
 import { Budgets } from "./pages/Budgets";
 import { Categories } from "./pages/Categories";
@@ -14,6 +15,7 @@ export function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
+        <ScrollToTop />
         <Routes>
           <Route element={<PublicOnlyRoute />}>
             <Route path="/login" element={<AuthPage mode="login" />} />
