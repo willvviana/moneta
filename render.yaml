@@ -25,6 +25,8 @@ services:
     # are skipped), and a failed migration stops the start, so the old version keeps serving.
     startCommand: cd backend && npm run migrate -- up && npm start
     # /health queries the database, so a deploy only goes live if PostgreSQL is reachable.
+    # Deploy only when the CI checks of the commit pass (Render docs: autoDeployTrigger commit | checksPass | off).
+    autoDeployTrigger: checksPass
     healthCheckPath: /health
     envVars:
       - key: NODE_VERSION
