@@ -102,6 +102,7 @@ export function Transactions() {
         <nav className="nav">
           <Link to="/">Home</Link>
           <Link to="/budgets">Budgets</Link>
+          <Link to="/categories">Categories</Link>
         </nav>
       </header>
 

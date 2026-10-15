@@ -196,6 +196,26 @@ describe("categories", () => {
     expect(renamed.body.category.name).toBe("bill");
   });
 
+  it("renames a category (200) but refuses a name another of your categories already uses (409)", async () => {
+    const u = await newUser();
+    const rent = (await u.post("/api/categories").send({ name: "Rent" })).body.category.id;
+    await u.post("/api/categories").send({ name: "Food" });
+
+    expect((await u.patch(`/api/categories/${rent}`).send({ name: "food" })).status).toBe(409); // ignoring case
+    const ok = await u.patch(`/api/categories/${rent}`).send({ name: "Housing" });
+    expect(ok.status).toBe(200);
+    expect(ok.body.category).toMatchObject({ id: rent, name: "Housing" });
+    const names = (await u.get("/api/categories")).body.categories.map((c: { name: string }) => c.name);
+    expect(names).toEqual(["Food", "Housing"]);
+  });
+
+  it.each([["empty", ""], ["blank", "   "], ["too long", "x".repeat(51)]])("rejects a %s category name (400)", async (_l, name) => {
+    const u = await newUser();
+    const id = (await u.post("/api/categories").send({ name: "Valid" })).body.category.id;
+    expect((await u.patch(`/api/categories/${id}`).send({ name })).status).toBe(400);
+    expect((await u.post("/api/categories").send({ name })).status).toBe(400);
+  });
+
   it("two users may use the same category name", async () => {
     const [x, y] = [await newUser(), await newUser()];
     expect((await x.post("/api/categories").send({ name: "Same" })).status).toBe(201);

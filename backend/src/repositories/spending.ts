@@ -1,9 +1,11 @@
 import { pool } from "../db.js";
+import { toSafeCents } from "../money.js";
 
 // THE definition of "spending" in Moneta, in one place:
 //   spending = expense transactions, owned by the user, with date in [from, to).
 // Income never counts. A transaction has one date, so it falls in exactly one period
-// (no double counting). Budgets use this now; Dashboard and Reports build on the same rule.
+// (no double counting). Budgets use this; the dashboard's expense total is an independent
+// aggregate of the same rule, and a test proves the two reconcile.
 
 // Total spent per category. Categories with no qualifying expenses are simply absent
 // (callers treat "absent" as 0).
@@ -17,11 +19,6 @@ export async function spentByCategory(userId: string, from: string, to: string):
     [userId, from, to],
   );
   const result = new Map<string, number>();
-  for (const row of rows) {
-    const spent = Number(row.spent);
-    // Refuse to return a silently-rounded money value.
-    if (!Number.isSafeInteger(spent)) throw new Error(`spending total exceeds safe integer range: ${row.spent}`);
-    result.set(row.categoryId, spent);
-  }
+  for (const row of rows) result.set(row.categoryId, toSafeCents(row.spent, "category spending"));
   return result;
 }

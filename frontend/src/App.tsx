@@ -2,6 +2,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./auth";
 import { AuthPage } from "./pages/AuthPage";
 import { Budgets } from "./pages/Budgets";
+import { Categories } from "./pages/Categories";
 import { Home } from "./pages/Home";
 import { Transactions } from "./pages/Transactions";
 import { ProtectedRoute, PublicOnlyRoute } from "./routes";
@@ -19,6 +20,7 @@ export function App() {
             <Route path="/" element={<Home />} />
             <Route path="/transactions" element={<Transactions />} />
             <Route path="/budgets" element={<Budgets />} />
+            <Route path="/categories" element={<Categories />} />
           </Route>
         </Routes>
       </BrowserRouter>

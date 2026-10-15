@@ -21,6 +21,12 @@ export function centsToInput(cents: number): string {
   return `${(cents - rem) / 100}.${String(rem).padStart(2, "0")}`;
 }
 
+// Signed amount for net figures: 140000 -> "+$1,400.00", -11345 -> "−$113.45", 0 -> "$0.00".
+export function formatSignedCents(cents: number): string {
+  if (cents === 0) return formatCents(0);
+  return cents < 0 ? `−${formatCents(-cents)}` : `+${formatCents(cents)}`;
+}
+
 // How much of the limit is used, as a whole percent (floored). May exceed 100 when over budget.
 // BigInt keeps the multiplication exact for any safe-integer cents; this is presentation only,
 // the server owns the real numbers (spent, remaining).

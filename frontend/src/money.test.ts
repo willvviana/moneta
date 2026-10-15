@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { centsToInput, describeRemaining, formatCents, parseDollarsToCents, percentUsed } from "./money";
+import {
+  centsToInput,
+  describeRemaining,
+  formatCents,
+  formatSignedCents,
+  parseDollarsToCents,
+  percentUsed,
+} from "./money";
 
 // CONTRACT of parseDollarsToCents (what these tests pin down):
 //  - Input is trimmed. Accepted shape: 1-12 digits, then optionally "." or "," and 1-2 digits.
@@ -62,6 +69,18 @@ describe("formatCents", () => {
     [99999999999999, "$999,999,999,999.99"],
   ])("formats %d cents as %s", (cents, text) => {
     expect(formatCents(cents)).toBe(text);
+  });
+});
+
+describe("formatSignedCents", () => {
+  it.each([
+    [140000, "+$1,400.00"],
+    [-11345, "−$113.45"], // typographic minus, like the transactions table
+    [1, "+$0.01"],
+    [-1, "−$0.01"],
+    [0, "$0.00"], // zero carries no sign
+  ])("%d cents reads %j", (cents, text) => {
+    expect(formatSignedCents(cents)).toBe(text);
   });
 });
 

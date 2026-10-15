@@ -21,6 +21,13 @@ export const listCategories = () => api<{ categories: Category[] }>("/categories
 export const createCategory = (name: string) =>
   api<{ category: Category }>("/categories", { method: "POST", body: { name } }).then((r) => r.category);
 
+// Only the name changes. Transactions and budgets reference the category by id, so they follow automatically.
+export const renameCategory = (id: string, name: string) =>
+  api<{ category: Category }>(`/categories/${id}`, { method: "PATCH", body: { name } }).then((r) => r.category);
+
+// The server refuses (409) while any transaction or budget still uses the category.
+export const deleteCategory = (id: string) => api<void>(`/categories/${id}`, { method: "DELETE" });
+
 // from is included, to is excluded: [from, to)
 export const listTransactions = (from: string, to: string) =>
   api<{ transactions: Transaction[] }>(`/transactions?from=${from}&to=${to}`).then((r) => r.transactions);
