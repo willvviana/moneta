@@ -44,13 +44,16 @@ function setSessionCookie(res: Response, token: string) {
 }
 
 // Brute-force protection: 10 attempts / 15 min / IP. Each limiter has its own counter.
-const makeAuthLimiter = () => rateLimit({ windowMs: 15 * 60 * 1000, limit: 10, standardHeaders: true, legacyHeaders: false });
+const makeAuthLimiter = (limit = 10) => rateLimit({ windowMs: 15 * 60 * 1000, limit, standardHeaders: true, legacyHeaders: false });
 const loginLimiter = makeAuthLimiter();
 const changePasswordLimiter = makeAuthLimiter(); // also lets an attacker test password guesses
+// Stops one IP from mass-creating accounts (each one costs an argon2 hash). The limit is configurable
+// because the test suite legitimately creates many users from one IP.
+const registerLimiter = makeAuthLimiter(Number(process.env.REGISTER_RATE_LIMIT) || 10);
 
 export const authRouter = Router();
 
-authRouter.post("/register", async (req, res) => {
+authRouter.post("/register", registerLimiter, async (req, res) => {
   const { email, password } = parse(req.body);
   const { user, token } = await register(email, password);
   setSessionCookie(res, token);

@@ -9,6 +9,14 @@ export class AppError extends Error {
   }
 }
 
+// What may be written to logs for an unexpected error. pg errors carry a `detail` such as
+// 'Key (email)=(a@b.com) already exists', which would put users' emails into the logs, so we
+// log only the error type, the SQLSTATE code and the message, plus the stack.
+export function safeLogDetails(err: unknown): Record<string, unknown> {
+  if (!(err instanceof Error)) return { value: String(err) };
+  return { name: err.name, code: pgErrorCode(err), message: err.message, stack: err.stack };
+}
+
 // PostgreSQL SQLSTATE of a thrown pg error, e.g. "23505" unique_violation,
 // "23503" foreign_key_violation.
 export const pgErrorCode = (err: unknown): string | undefined => (err as { code?: string } | null)?.code;
