@@ -1,0 +1,86 @@
+# Continuous integration: every push to main and every pull request is type-checked, tested and built.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# The workflow only needs to read the code.
+permissions:
+  contents: read
+
+# A newer push to the same branch cancels the run that is still going.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (typecheck, tests, build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      # Connection settings for the throwaway test database. The password is generated in the
+      # "Start PostgreSQL" step: no password is stored in this file or in the repository.
+      PGHOST: localhost
+      PGPORT: "5432"
+      PGUSER: moneta
+      PGDATABASE: moneta_test # the test suite refuses to run against any other database name
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - run: npm ci
+      - run: npm run typecheck
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Start PostgreSQL with a random one-time password
+        run: |
+          PGPASSWORD="$(openssl rand -hex 24)"
+          echo "::add-mask::$PGPASSWORD"        # never printed in logs
+          echo "PGPASSWORD=$PGPASSWORD" >> "$GITHUB_ENV"
+          docker run -d --name ci-db -p 5432:5432 \
+            -e POSTGRES_USER="$PGUSER" -e POSTGRES_PASSWORD="$PGPASSWORD" -e POSTGRES_DB="$PGDATABASE" \
+            postgres:16
+          for i in $(seq 1 30); do
+            docker exec ci-db pg_isready -U "$PGUSER" -d "$PGDATABASE" && exit 0
+            sleep 1
+          done
+          echo "PostgreSQL did not become ready" && docker logs ci-db && exit 1
+
+      - name: Apply migrations
+        run: npm run migrate -- up
+
+      - run: npm test
+      - run: npm run build
+
+  frontend:
+    name: Frontend (typecheck, tests, build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - run: npm ci
+      - run: npm run typecheck
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
+      - run: npm test
+      - run: npm run build
