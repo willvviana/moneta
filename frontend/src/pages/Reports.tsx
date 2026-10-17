@@ -13,36 +13,31 @@ import {
   type MonthSortKey,
   type SortState,
 } from "../sort";
+import { errorText } from "../i18n/errors";
+import { useI18n } from "../i18n/locale";
 import { formatCents, formatShare, formatSignedCents, percentUsed } from "../money";
-import { currentMonth, isMonth, monthLabel, presetRange, rangeProblem, type Preset } from "../month";
+import { currentMonth, isMonth, MAX_REPORT_MONTHS, monthLabel, presetRange, rangeProblem, type Preset } from "../month";
 import { getOverTime, getSpendingByCategory, type CategoryReport, type OverTimeReport } from "../reports";
 
 type PresetChoice = Preset | "month" | "custom";
-const PRESETS: { value: PresetChoice; label: string }[] = [
-  { value: "month", label: "Single month" },
-  { value: "last3", label: "Last 3 months" },
-  { value: "last6", label: "Last 6 months" },
-  { value: "last12", label: "Last 12 months" },
-  { value: "ytd", label: "Year to date" },
-  { value: "custom", label: "Custom range" },
-];
-
-const messageOf = (err: unknown) => (err instanceof Error ? err.message : "Unknown error");
+const PRESETS: PresetChoice[] = ["month", "last3", "last6", "last12", "ytd", "custom"]; // labels: reports.presets
 
 // The tables hold the exact numbers; the bars repeat the SAME values visually, so every bar has a text label.
 export function Reports() {
+  const { lang, t } = useI18n();
+  const p = t.reports;
   const [preset, setPreset] = useState<PresetChoice>("last6");
   const [range, setRange] = useState(() => presetRange("last6", currentMonth()));
   const [byCategory, setByCategory] = useState<CategoryReport | null>(null);
   const [overTime, setOverTime] = useState<OverTimeReport | null>(null);
   const [loadState, setLoadState] = useState<"loading" | "ready" | "error">("loading");
-  const [loadError, setLoadError] = useState("");
+  const [loadError, setLoadError] = useState<unknown>(null); // translated when shown
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState<SortState<CategorySortKey>>(DEFAULT_CATEGORY_SORT);
   const [monthSort, setMonthSort] = useState<SortState<MonthSortKey>>(DEFAULT_MONTH_SORT);
   const latest = useRef(0);
 
-  const problem = rangeProblem(range.from, range.to);
+  const problem = rangeProblem(range.from, range.to, lang);
 
   const load = useCallback(async (from: string, to: string) => {
     const requestId = ++latest.current;
@@ -56,7 +51,7 @@ export function Reports() {
       setLoadState("ready");
     } catch (err) {
       if (requestId !== latest.current) return;
-      setLoadError(messageOf(err));
+      setLoadError(err);
       setLoadState("error");
     }
   }, []);
@@ -88,38 +83,38 @@ export function Reports() {
 
   return (
     <main className="page">
-      <PageHeader eyebrow="Analysis" title="Reports" />
+      <PageHeader eyebrow={p.eyebrow} title={p.title} />
 
       <div className="month-bar no-rule">
         <label className="inline-label">
-          Period
+          {p.period}
           <select value={preset} onChange={(e) => choosePreset(e.target.value as PresetChoice)}>
-            {PRESETS.map((p) => (
-              <option key={p.value} value={p.value}>
-                {p.label}
+            {PRESETS.map((value) => (
+              <option key={value} value={value}>
+                {p.presets[value]}
               </option>
             ))}
           </select>
         </label>
         {preset === "month" ? (
           <label className="inline-label">
-            Month
+            {t.common.month}
             <input type="month" value={range.to} onChange={(e) => setSingleMonth(e.target.value)} />
           </label>
         ) : (
           <>
             <label className="inline-label">
-              From
+              {p.from}
               <input type="month" value={range.from} onChange={(e) => setMonthField("from", e.target.value)} />
             </label>
             <label className="inline-label">
-              To
+              {p.to}
               <input type="month" value={range.to} onChange={(e) => setMonthField("to", e.target.value)} />
             </label>
           </>
         )}
         <p className="muted note">
-          {preset === "month" ? "One whole month." : "Whole months, both ends included (at most 60 months)."}
+          {preset === "month" ? p.singleNote : p.rangeNote(MAX_REPORT_MONTHS)}
         </p>
       </div>
 
@@ -129,11 +124,11 @@ export function Reports() {
         </p>
       )}
 
-      {!problem && loadState === "loading" && <p className="status">Loading…</p>}
+      {!problem && loadState === "loading" && <p className="status">{t.common.loading}</p>}
       {!problem && loadState === "error" && (
         <div className="status">
-          <p className="error">Couldn't load the reports: {loadError}</p>
-          <button onClick={() => void load(range.from, range.to)}>Retry</button>
+          <p className="error">{p.loadFailed(errorText(loadError, lang))}</p>
+          <button onClick={() => void load(range.from, range.to)}>{t.common.retry}</button>
         </div>
       )}
 
@@ -141,47 +136,46 @@ export function Reports() {
         <>
           {noActivity && (
             <p className="status">
-              No transactions between {monthLabel(range.from)} and {monthLabel(range.to)}.
+              {p.noActivity(monthLabel(range.from, lang), monthLabel(range.to, lang))}
             </p>
           )}
 
-          <h2>Spending by category</h2>
+          <h2>{p.spendingByCategory}</h2>
           {byCategory.categories.length === 0 ? (
-            <p className="muted">No spending in this period.</p>
+            <p className="muted">{p.noSpending}</p>
           ) : (
             <>
-              <div className="filters" role="search" aria-label="Filter spending by category">
+              <div className="filters" role="search" aria-label={p.filterAria}>
                 <label className="inline-label grow">
-                  Search category
-                  <input type="search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="e.g. rent" />
+                  {p.searchCategory}
+                  <input type="search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder={p.searchPlaceholder} />
                 </label>
                 {search.trim() !== "" && (
                   <button type="button" className="secondary" onClick={() => setSearch("")}>
-                    Clear filters
+                    {t.common.clearFilters}
                   </button>
                 )}
               </div>
               {search.trim() !== "" && (
                 <p className="muted note">
-                  Showing {byCategory.categories.filter((c) => matchesName(c.categoryName, search)).length} of{" "}
-                  {byCategory.categories.length} categories. Shares and the total still cover all spending.
+                  {p.showing(byCategory.categories.filter((c) => matchesName(c.categoryName, search)).length, byCategory.categories.length)}
                 </p>
               )}
               {byCategory.categories.every((c) => !matchesName(c.categoryName, search)) && (
                 <p className="status">
-                  No categories match "{search.trim()}".{" "}
+                  {p.noMatch(search.trim())}{" "}
                   <button className="secondary" onClick={() => setSearch("")}>
-                    Clear filters
+                    {t.common.clearFilters}
                   </button>
                 </p>
               )}
             <table>
-              <caption className="sr-only">Spending by category, largest first</caption>
+              <caption className="sr-only">{p.categoryCaption}</caption>
               <thead>
                 <tr>
-                  <SortableTh label="Category" column="category" sort={sort} firstDir={CATEGORY_FIRST_DIR.category} onSort={setSort} />
-                  <SortableTh label="Spent" column="spent" sort={sort} firstDir={CATEGORY_FIRST_DIR.spent} onSort={setSort} className="num" />
-                  <SortableTh label="Share of spending" column="share" sort={sort} firstDir={CATEGORY_FIRST_DIR.share} onSort={setSort} />
+                  <SortableTh label={t.common.category} column="category" sort={sort} firstDir={CATEGORY_FIRST_DIR.category} onSort={setSort} />
+                  <SortableTh label={p.spent} column="spent" sort={sort} firstDir={CATEGORY_FIRST_DIR.spent} onSort={setSort} className="num" />
+                  <SortableTh label={p.share} column="share" sort={sort} firstDir={CATEGORY_FIRST_DIR.share} onSort={setSort} />
                 </tr>
               </thead>
               <tbody>
@@ -193,7 +187,7 @@ export function Reports() {
                   return (
                     <tr key={c.categoryId}>
                       <td>{c.categoryName}</td>
-                      <td className="num">{formatCents(c.spentCents)}</td>
+                      <td className="num">{formatCents(c.spentCents, lang)}</td>
                       <td>
                         <span className="share">{formatShare(c.spentCents, byCategory.totalSpentCents)}</span>
                         <span className="cell-bar" aria-hidden="true">
@@ -206,62 +200,59 @@ export function Reports() {
               </tbody>
               <tfoot>
                 <tr>
-                  <th>Total</th>
-                  <th className="num">{formatCents(byCategory.totalSpentCents)}</th>
+                  <th>{t.common.total}</th>
+                  <th className="num">{formatCents(byCategory.totalSpentCents, lang)}</th>
                   <th />
                 </tr>
               </tfoot>
             </table>
             </>
           )}
-          <p className="muted note">Expenses only, including categories without a budget. Income is not spending.</p>
+          <p className="muted note">{p.expensesNote}</p>
 
-          <h2>Income, expenses and net cash flow by month</h2>
+          <h2>{p.byMonthTitle}</h2>
           <table>
-            <caption className="sr-only">Monthly income, expenses and net cash flow</caption>
+            <caption className="sr-only">{p.byMonthCaption}</caption>
             <thead>
               <tr>
-                <SortableTh label="Month" column="month" sort={monthSort} firstDir={MONTH_FIRST_DIR.month} onSort={setMonthSort} />
-                <SortableTh label="Income" column="income" sort={monthSort} firstDir={MONTH_FIRST_DIR.income} onSort={setMonthSort} />
-                <SortableTh label="Expenses" column="expenses" sort={monthSort} firstDir={MONTH_FIRST_DIR.expenses} onSort={setMonthSort} />
-                <SortableTh label="Net cash flow" column="net" sort={monthSort} firstDir={MONTH_FIRST_DIR.net} onSort={setMonthSort} className="num" />
+                <SortableTh label={t.common.month} column="month" sort={monthSort} firstDir={MONTH_FIRST_DIR.month} onSort={setMonthSort} />
+                <SortableTh label={t.common.income} column="income" sort={monthSort} firstDir={MONTH_FIRST_DIR.income} onSort={setMonthSort} />
+                <SortableTh label={t.common.expenses} column="expenses" sort={monthSort} firstDir={MONTH_FIRST_DIR.expenses} onSort={setMonthSort} />
+                <SortableTh label={t.common.netCashFlow} column="net" sort={monthSort} firstDir={MONTH_FIRST_DIR.net} onSort={setMonthSort} className="num" />
               </tr>
             </thead>
             <tbody>
               {sortMonthRows(overTime.months, monthSort).map((m) => (
                 <tr key={m.month}>
-                  <td>{monthLabel(m.month)}</td>
+                  <td>{monthLabel(m.month, lang)}</td>
                   <td>
-                    <span className="income-text">{formatCents(m.incomeCents)}</span>
+                    <span className="income-text">{formatCents(m.incomeCents, lang)}</span>
                     <span className="cell-bar" aria-hidden="true">
                       <span className="fill income" style={{ width: `${percentUsed(m.incomeCents, maxMonthly)}%` }} />
                     </span>
                   </td>
                   <td>
-                    <span className="expense-text">{formatCents(m.expensesCents)}</span>
+                    <span className="expense-text">{formatCents(m.expensesCents, lang)}</span>
                     <span className="cell-bar" aria-hidden="true">
                       <span className="fill spend" style={{ width: `${percentUsed(m.expensesCents, maxMonthly)}%` }} />
                     </span>
                   </td>
                   <td className={`num ${m.netCashFlowCents < 0 ? "expense-text" : m.netCashFlowCents > 0 ? "income-text" : ""}`}>
-                    {formatSignedCents(m.netCashFlowCents)}
+                    {formatSignedCents(m.netCashFlowCents, lang)}
                   </td>
                 </tr>
               ))}
             </tbody>
             <tfoot>
               <tr>
-                <th>Total</th>
-                <th>{formatCents(overTime.totals.incomeCents)}</th>
-                <th>{formatCents(overTime.totals.expensesCents)}</th>
-                <th className="num">{formatSignedCents(overTime.totals.netCashFlowCents)}</th>
+                <th>{t.common.total}</th>
+                <th>{formatCents(overTime.totals.incomeCents, lang)}</th>
+                <th>{formatCents(overTime.totals.expensesCents, lang)}</th>
+                <th className="num">{formatSignedCents(overTime.totals.netCashFlowCents, lang)}</th>
               </tr>
             </tfoot>
           </table>
-          <p className="muted note">
-            Net cash flow is income minus expenses for the month. It is not an account balance. Bars are scaled to the
-            largest monthly amount in this period.
-          </p>
+          <p className="muted note">{p.netNote}</p>
         </>
       )}
     </main>

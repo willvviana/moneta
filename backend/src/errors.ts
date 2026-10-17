@@ -1,8 +1,33 @@
-// An error that is safe to show to the client (status + message).
+// Stable, machine-readable error codes. The client translates by code (the English message is
+// only a fallback), so a code must never change meaning once shipped. Keep in sync with
+// ErrorCode in frontend/src/i18n/messages.ts.
+export type ErrorCode =
+  | "VALIDATION"
+  | "INVALID_BODY"
+  | "NOT_FOUND"
+  | "NOT_AUTHENTICATED"
+  | "FORBIDDEN_ORIGIN"
+  | "RATE_LIMITED"
+  | "INTERNAL"
+  | "INVALID_CREDENTIALS_FORMAT"
+  | "INVALID_PASSWORD_CHANGE_FORMAT"
+  | "REGISTRATION_FAILED"
+  | "INVALID_CREDENTIALS"
+  | "INVALID_CURRENT_PASSWORD"
+  | "PASSWORD_UNCHANGED"
+  | "CATEGORY_UNKNOWN"
+  | "CATEGORY_NOT_FOUND"
+  | "CATEGORY_NAME_TAKEN"
+  | "CATEGORY_IN_USE"
+  | "TRANSACTION_NOT_FOUND"
+  | "BUDGET_NOT_FOUND";
+
+// An error that is safe to show to the client (status + code + message).
 // Anything else that gets thrown is treated as a 500 and NOT leaked.
 export class AppError extends Error {
   constructor(
     public status: number,
+    public code: ErrorCode,
     message: string,
   ) {
     super(message);

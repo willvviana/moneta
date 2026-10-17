@@ -14,7 +14,7 @@ Status: **decided, nothing implemented yet.** Greenfield project; no prior code 
 ## Financial rules (all six ACCEPTED by owner; hard delete accepted deliberately for v1)
 
 1. **Money is stored as integer minor units (cents)** in a `BIGINT` column. No floats anywhere.
-2. **One currency (USD) in v1.** Multi-currency is out of scope.
+2. **One currency (USD) in v1.** Multi-currency is out of scope. Amounts are plain integer cents with no currency column. Since 2026-10-16 the Portuguese interface LABELS them R$ (see "Languages"); nothing is converted.
 3. **Sign convention:** `amount_cents` is always positive; `type` (`income` | `expense`) carries direction. A `CHECK (amount_cents > 0)` enforces it.
 4. **Dates:** a transaction has a calendar `date` (type `DATE`, no time zone). Periods are half-open: `[start, end)`, e.g. `2026-10-01` <= d < `2026-11-01`.
 5. **Net cash flow** = income - expenses for the period. It is not an account balance.
@@ -111,6 +111,17 @@ Verified locally (not on Render): migrations through `DATABASE_URL` on an empty 
 - **Saved appearance settings:** storage version 3. The saved mode and fonts from older versions are ignored (they were always saved, so they were the old defaults rather than choices); saved colour overrides are kept.
 - **Rejected from the mockup:** the "extrato importado" badge (bank imports are out of V1 scope) and the savings insight card (new comparison logic plus a projection, close to forecasting). Portuguese/BRL is not part of this change; see Open items.
 
+## Languages: en-US and pt-BR (implemented 2026-10-16, ACCEPTED by owner incl. the R$ risk)
+
+- **What:** the whole interface is available in English (US) and Portuguese (Brazil). A picker in the account menu (Options) and on the login, register and change-password pages switches it instantly.
+- **Where the choice lives:** this browser's localStorage (`moneta.lang`), like the theme, so it is per device and works before signing in. First visit: any `pt*` browser language picks pt-BR, everything else en-US. A stored value is validated before use. Rejected: saving it on the user profile (needs a migration and an endpoint, and the login page would still need the browser fallback).
+- **Currency label follows the language (owner's decision, known risk):** pt-BR shows `R$ 1.234,56`, en-US `$1,234.56`, for the SAME stored cents. No conversion happens. **Risk:** the label is not a property of the data. Amounts entered as dollars read as reais after switching to Portuguese (and vice versa), and two devices with different languages show the same account in two currencies. The recommended alternative was to keep USD in both languages (`US$ 1.234,56` in pt-BR); a per-user currency (`users.currency`, chosen once) is the correct fix if BRL becomes a real requirement. Form labels follow the same rule ("Amount (USD)" / "Valor (R$)"). The Portuguese footer therefore says "centavos inteiros" instead of naming a currency.
+- **Formatting:** integer/string operations only (no float, no `Intl.NumberFormat` for money), so output is exact and identical in every browser. pt-BR uses "." for thousands, "," for decimals, a no-break space after "R$", and "mil" for thousands in chart labels. Month names come from the browser's `Intl` data ("outubro de 2026"; capitalised in headings).
+- **Input:** unchanged. Amount fields accept "12,34" and "12.34" in both languages and still reject thousands separators ("1.234,56", "1.234") rather than guess. Edit forms pre-fill with the language's decimal separator.
+- **Not translated by the app:** native date/month inputs (the browser draws them in its own language), transaction dates (still ISO `YYYY-MM-DD`, unambiguous), user data such as category names, and font names.
+- **API errors:** every error response is `{ error, code }` (code list: `backend/src/errors.ts`, mirrored in `frontend/src/i18n/messages.ts`). The client translates by code; English shows the server's message (often more specific, e.g. which field failed), and an unknown code falls back to that message. Codes must never change meaning once shipped. The auth rate limiter now answers with the same JSON shape (`RATE_LIMITED`) instead of plain text.
+- **Implementation:** no i18n library. `frontend/src/i18n/messages.ts` holds both dictionaries; `pt` is typed as `typeof en`, so a missing or extra key fails `npm run typecheck`, and a unit test also compares the runtime shape. Formatting helpers take the language as an explicit argument (`formatCents(cents, lang)`) instead of reading global state, so tests don't depend on the machine's locale. Rejected: react-i18next (a dependency, string keys without compile-time checking, more than two languages need).
+
 ## Open items
 
 - (Resolved) Migrations: `node-pg-migrate` via CLI, plain `.sql` files in `db/migrations` with `-- Up Migration` / `-- Down Migration` markers. Applied with `npm run migrate -- up` from `backend/`. Postgres no longer auto-runs them. Applied migrations are tracked in the `pgmigrations` table. Never edit an applied migration; add a new one.
@@ -118,4 +129,4 @@ Verified locally (not on Render): migrations through `DATABASE_URL` on an empty 
 - Test framework (Vitest/Jest + Supertest) and local Postgres setup (Docker).
 - Deployment target.
 - Name availability and trademark check for "Moneta".
-- Portuguese + BRL: requested as a separate option. Undecided: whether currency is per user (no conversion) or display only (which would mislabel USD amounts), and how language is chosen.
+- (Resolved 2026-10-16, see "Languages") Portuguese + BRL: the language is per browser; R$ is a display label tied to the language (owner accepted the mislabelling risk). Still open: a real per-user currency if BRL data must be distinguished from USD data.
