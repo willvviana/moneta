@@ -3,6 +3,7 @@ import {
   centsToInput,
   describeRemaining,
   formatCents,
+  formatCentsShort,
   formatShare,
   formatSignedCents,
   parseDollarsToCents,
@@ -142,5 +143,24 @@ describe("centsToInput", () => {
     for (const cents of [1, 9, 10, 99, 100, 101, 1234, 100000, 99999999999999]) {
       expect(parseDollarsToCents(centsToInput(cents))).toBe(cents);
     }
+  });
+});
+
+describe("formatCentsShort", () => {
+  it("rounds half up to whole dollars", () => {
+    expect(formatCentsShort(514000)).toBe("$5,140");
+    expect(formatCentsShort(514049)).toBe("$5,140");
+    expect(formatCentsShort(514050)).toBe("$5,141");
+    expect(formatCentsShort(0)).toBe("$0");
+  });
+
+  it("switches to thousands from $100,000", () => {
+    expect(formatCentsShort(9_999_949)).toBe("$99,999");
+    expect(formatCentsShort(12_345_678)).toBe("$123k");
+    expect(formatCentsShort(12_350_000)).toBe("$124k");
+  });
+
+  it("keeps the sign for negatives", () => {
+    expect(formatCentsShort(-514050)).toBe("−$5,141");
   });
 });
