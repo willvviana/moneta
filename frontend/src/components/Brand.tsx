@@ -1,4 +1,4 @@
-// The logo: a navy drop of water holding one kanji, 水 ("water"), then the wordmark.
+// The logo: a drop of water (in the Navigation colour) holding one kanji, 水 ("water"), then the wordmark.
 export function Brand() {
   return (
     <span className="brand">
