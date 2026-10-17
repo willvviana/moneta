@@ -10,20 +10,20 @@ export type ColorRole = "title" | "nav" | "income" | "expense" | "label";
 // A role can drive several CSS variables (the labels colour also colours the totals rows).
 export const COLOR_ROLES: { role: ColorRole; label: string; cssVars: string[] }[] = [
   { role: "title", label: "Titles and nav text", cssVars: ["--title"] },
-  { role: "nav", label: "Navigation and share of spending", cssVars: ["--navy"] },
+  { role: "nav", label: "Navigation and share of spending", cssVars: ["--nav"] },
   { role: "income", label: "Income", cssVars: ["--income"] },
-  { role: "expense", label: "Expenses", cssVars: ["--scarlet"] },
+  { role: "expense", label: "Expenses", cssVars: ["--expense"] },
   { role: "label", label: "Labels, table headers and totals", cssVars: ["--label", "--label-strong"] },
 ];
 
 // Must match the defaults in styles.css; they are only used to preselect the colour pickers.
 export const DEFAULT_COLORS: Record<Mode, Record<ColorRole, string>> = {
-  dark: { title: "#e8eaf2", nav: "#5b7fd6", income: "#39ff14", expense: "#ff2e4d", label: "#7f879d" },
-  light: { title: "#171b2b", nav: "#2f4fb0", income: "#15803d", expense: "#c4122f", label: "#5f6783" },
+  dark: { title: "#ece8e0", nav: "#8fbf98", income: "#8fcf9a", expense: "#e8918a", label: "#9a948a" },
+  light: { title: "#2a2925", nav: "#4f7d5a", income: "#3f7d4c", expense: "#b4534d", label: "#6f6a60" },
 };
 
-// Fonts the user can pick. Instrument Serif and Inter are bundled; the rest are system fonts or generic families.
-// Arial is the default for both titles and text.
+// Fonts the user can pick. Instrument Serif, Inter and JetBrains Mono are bundled; the rest are system fonts or generic families.
+// Defaults: Instrument Serif for titles, Inter for text and labels.
 export type FontRole = "display" | "body" | "label";
 export type FontChoice = "arial" | "instrument" | "inter" | "jetbrains" | "sans" | "serif" | "times" | "mono";
 
@@ -40,10 +40,10 @@ export const FONT_CHOICES: { id: FontChoice; label: string; stack: string }[] = 
 
 // `fallback` is what styles.css uses when nothing is overridden (shown as "(Default)" in the menu).
 export const FONT_ROLES: { role: FontRole; label: string; cssVar: string; fallback: FontChoice }[] = [
-  { role: "display", label: "Title font", cssVar: "--font-display", fallback: "arial" },
-  { role: "body", label: "Text font", cssVar: "--font-body", fallback: "arial" },
+  { role: "display", label: "Title font", cssVar: "--font-display", fallback: "instrument" },
+  { role: "body", label: "Text font", cssVar: "--font-body", fallback: "inter" },
   // Small uppercase labels: page eyebrows, table headers and totals, card labels.
-  { role: "label", label: "Label and totals font", cssVar: "--font-mono", fallback: "jetbrains" },
+  { role: "label", label: "Label and totals font", cssVar: "--font-mono", fallback: "inter" },
 ];
 
 // Overrides are kept per mode: a neon green that suits the dark theme would be unreadable on white.
@@ -54,24 +54,26 @@ export type ThemeState = {
 };
 
 const STORAGE_KEY = "moneta.theme";
-const STORAGE_VERSION = 2; // bump when the meaning of a stored value changes
+const STORAGE_VERSION = 3; // bump when the meaning of a stored value changes
 const HEX = /^#[0-9a-f]{6}$/i;
 
-export const INITIAL_STATE: ThemeState = { mode: "dark", overrides: { dark: {}, light: {} }, fonts: { display: "arial", body: "arial", label: "jetbrains" } };
+export const INITIAL_STATE: ThemeState = { mode: "light", overrides: { dark: {}, light: {} }, fonts: { display: "instrument", body: "inter", label: "inter" } };
 
 // Never trust stored data: keep only known modes, known roles and well-formed #rrggbb values.
 export function parseStored(raw: string | null): ThemeState {
   if (!raw) return INITIAL_STATE;
   try {
     const data = JSON.parse(raw) as { mode?: unknown; overrides?: Record<string, Record<string, unknown>>; fonts?: Record<string, unknown>; version?: unknown };
+    const current = data.version === STORAGE_VERSION;
     const state: ThemeState = {
-      mode: data.mode === "light" ? "light" : "dark",
+      // Before version 3 the mode was always saved (dark by default), so an old value is not a real choice: use the new light default.
+      mode: current && data.mode === "dark" ? "dark" : "light",
       overrides: { dark: {}, light: {} },
       fonts: { ...INITIAL_STATE.fonts },
     };
-    // Fonts saved before version 2 were stored with the old defaults (Instrument Serif / Inter), so they are ignored.
+    // Fonts are always saved in full, so values from an older version are the old defaults, not choices: ignore them.
     for (const { role } of FONT_ROLES) {
-      const value = data.version === STORAGE_VERSION ? data.fonts?.[role] : undefined;
+      const value = current ? data.fonts?.[role] : undefined;
       if (FONT_CHOICES.some((c) => c.id === value)) state.fonts[role] = value as FontChoice;
     }
     for (const mode of ["dark", "light"] as const) {

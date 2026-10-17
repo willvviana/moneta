@@ -54,3 +54,14 @@ export function formatCents(cents: number): string {
   const dollars = (cents - rem) / 100;
   return `$${dollars.toLocaleString("en-US")}.${String(rem).padStart(2, "0")}`;
 }
+
+// Short label for chart centres, rounded half up to whole dollars: 514000 -> "$5,140", 514050 -> "$5,141".
+// From $100,000 it switches to thousands: 12345678 -> "$123k". Integer arithmetic only. The exact
+// amount must be shown (or available to screen readers) next to it.
+export function formatCentsShort(cents: number): string {
+  if (cents < 0) return `−${formatCentsShort(-cents)}`;
+  const dollars = (cents + 50 - ((cents + 50) % 100)) / 100;
+  if (dollars < 100_000) return `$${dollars.toLocaleString("en-US")}`;
+  const thousands = (dollars + 500 - ((dollars + 500) % 1000)) / 1000;
+  return `$${thousands.toLocaleString("en-US")}k`;
+}
