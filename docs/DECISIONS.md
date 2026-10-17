@@ -102,6 +102,15 @@ Defined in `render.yaml` (a Blueprint): one Node web service plus one PostgreSQL
 
 Verified locally (not on Render): migrations through `DATABASE_URL` on an empty database, boot with `NODE_ENV=production` and only `RENDER_EXTERNAL_URL`, `/health` ok, the app page served, the session cookie `HttpOnly; Secure; SameSite=Lax`, and a request with a foreign `Origin` rejected with 403.
 
+## Visual design: warm light restyle (implemented 2026-10-17, pending owner review)
+
+- **What:** the app moves from a dark indigo/neon look to a warm, light "paper" style from the owner's mockup: soft white cards with large radii, Instrument Serif headlines, Inter for text and labels, sage green as the accent. Dark mode stays as a muted warm variant, no longer the default.
+- **Dashboard:** adds a spending-by-category donut (selected month) and a net-cash-flow bar chart (that month and the five before). Both reuse the existing report endpoints, so there are no new server calculations and the same definitions as Reports. Clicking a bar switches the month.
+- **Chart colours:** the mockup's pastels failed the colour-blind separation and lightness checks, so six slightly deeper colours were chosen and validated (light and dark separately). A category keeps its colour across months (stable hash of its id; colour follows the category, not its rank). With more than six categories, the smallest are summed into "Other"; slices always add up to the category total.
+- **Shares are floored** (existing `formatShare`), so legend percentages can add up to slightly less than 100%; the dashboard says so instead of adjusting numbers to force 100.
+- **Saved appearance settings:** storage version 3. The saved mode and fonts from older versions are ignored (they were always saved, so they were the old defaults rather than choices); saved colour overrides are kept.
+- **Rejected from the mockup:** the "extrato importado" badge (bank imports are out of V1 scope) and the savings insight card (new comparison logic plus a projection, close to forecasting). Portuguese/BRL is not part of this change; see Open items.
+
 ## Open items
 
 - (Resolved) Migrations: `node-pg-migrate` via CLI, plain `.sql` files in `db/migrations` with `-- Up Migration` / `-- Down Migration` markers. Applied with `npm run migrate -- up` from `backend/`. Postgres no longer auto-runs them. Applied migrations are tracked in the `pgmigrations` table. Never edit an applied migration; add a new one.
@@ -109,3 +118,4 @@ Verified locally (not on Render): migrations through `DATABASE_URL` on an empty 
 - Test framework (Vitest/Jest + Supertest) and local Postgres setup (Docker).
 - Deployment target.
 - Name availability and trademark check for "Moneta".
+- Portuguese + BRL: requested as a separate option. Undecided: whether currency is per user (no conversion) or display only (which would mislabel USD amounts), and how language is chosen.

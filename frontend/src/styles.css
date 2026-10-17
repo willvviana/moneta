@@ -1,80 +1,109 @@
 /* =========================================================================
    Moneta design system
-   Dark ink background, indigo as the primary accent (links, focus),
-   forest green for income and success, vermilion (a hanko-seal red) reserved for
-   expenses, warnings and the small diamond accents. Navy marks the active nav,
-   the logo drop and the page eyebrow labels.
+   Warm paper background, soft white cards with large radii and a faint shadow,
+   a condensed serif for headlines and a clean sans for everything else.
+   Sage green is the accent (links, buttons, focus, active nav, net cash flow
+   when positive); a muted brick red marks expenses and errors. Charts use six
+   validated category colours (--cat-1..6) plus a neutral for "Other".
+   Light is the default; dark is a warm, muted variant of the same system.
    ========================================================================= */
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 
-  --bg: #0a0c12;
-  --bg-raise: #0f121b;
-  --surface: #131722;
-  --surface-2: #1a1f2d;
-  --line: #242b3d;
-  --line-soft: #1a2030;
+  --bg: #f3f1ec;
+  --bg-raise: #f7f5f0; /* inputs, table headers, bar tracks inside cards */
+  --surface: #fdfcfa;
+  --surface-2: #f6f3ee; /* row hover */
+  --line: #e8e3da;
+  --line-soft: #efebe4;
+  --line-strong: #d6cfc3; /* hover borders */
+  --header-bg: rgba(243, 241, 236, 0.86);
+  --shadow: 0 1px 2px rgba(60, 50, 30, 0.04), 0 8px 24px rgba(60, 50, 30, 0.05);
 
-  --text: #e8eaf2;
-  --text-dim: #a4abc0;
-  --muted: #7f879d;
+  --text: #2a2925;
+  --text-dim: #57534b;
+  --muted: #6f6a60;
   --title: var(--text); /* h1/h2 colour; the user can override it */
-  --link-soft: color-mix(in srgb, var(--title) 90%, transparent); /* header and footer links: the Titles colour at 90% strength (softened 10%) */
-  --label: var(--muted); /* small uppercase labels and table headers; overridable together with --label-strong */
+  --link-soft: color-mix(in srgb, var(--title) 90%, transparent); /* header and footer links: the Titles colour at 90% strength */
+  --label: var(--muted); /* small labels, eyebrows and table headers; overridable together with --label-strong */
   --label-strong: var(--text); /* totals rows */
-  --line-strong: #323b52; /* hover borders */
-  --header-bg: rgba(10, 12, 18, 0.82);
 
-  --indigo: #7380ff;
-  --indigo-strong: #5662f0;
-  --indigo-soft: rgba(115, 128, 255, 0.14);
-  --navy: #5b7fd6; /* navy blue, lightened just enough to stay readable on the dark background: nav, logo, page eyebrow labels */
-  --income: #39ff14; /* neon green: income amounts and bars */
-  --scarlet: #ff2e4d; /* crimson scarlet: expenses and over-budget text (readable on dark) */
-  --scarlet-deep: color-mix(in srgb, var(--scarlet) 82%, black); /* same hue, darker: expense bars and over-budget fills (follows --scarlet) */
-  --green: #3fa268; /* forest green: success messages only */
-  --green-soft: rgba(63, 162, 104, 0.12);
-  --vermilion: #e2583e;
-  --vermilion-text: #ff8f7a;
-  --vermilion-soft: rgba(226, 88, 62, 0.12);
+  --accent: #4f7d5a; /* sage: links, focus, buttons */
+  --accent-strong: #44704f; /* button hover */
+  --accent-soft: rgba(79, 125, 90, 0.12);
+  --on-accent: #ffffff; /* text on an accent background */
+  --nav: #4f7d5a; /* active nav, logo, share of spending; user-overridable */
+  --income: #3f7d4c;
+  --expense: #b4534d; /* expenses and over-budget text */
+  --expense-deep: color-mix(in srgb, var(--expense) 80%, white); /* expense bars and over-budget fills (follows --expense) */
+  --green: #3f7d4c; /* success messages */
+  --green-soft: rgba(63, 125, 76, 0.1);
+  --danger: #b4534d;
+  --danger-text: #9e423c;
+  --danger-soft: rgba(180, 83, 77, 0.1);
+  --bar-track: #ece7df; /* neutral bars and empty tracks */
+
+  /* Chart category colours: fixed order, checked for colour-blind separation on --surface.
+     They are marks, not text: labels always sit beside them in text colours. */
+  --cat-1: #418d55;
+  --cat-2: #e78d9b;
+  --cat-3: #297cae;
+  --cat-4: #d0ad48;
+  --cat-5: #8c6ebd;
+  --cat-6: #d58a55;
+  --cat-other: #b9b2a6;
 
   --content: 1080px; /* page content width: fixed */
   --chrome: 2000px; /* header and footer width: effectively edge to edge up to 1080p, with side padding */
-  --radius: 12px;
-  --radius-sm: 8px;
-  --font-display: Arial, "Helvetica Neue", Helvetica, sans-serif; /* titles and text default to Arial; theme.ts must use the same default */
-  --font-body: Arial, "Helvetica Neue", Helvetica, sans-serif;
-  --font-mono: "JetBrains Mono Variable", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --radius: 22px; /* cards */
+  --radius-md: 14px; /* tables, panels */
+  --radius-sm: 10px; /* inputs */
+  --font-display: "Instrument Serif", "Iowan Old Style", Georgia, serif; /* theme.ts must use the same defaults */
+  --font-body: "Inter Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Inter Variable", system-ui, -apple-system, "Segoe UI", sans-serif; /* the "label" font role */
 }
 
-/* Light mode: same variable names, readable values on a white page. The data-theme attribute is set on <html> by theme.ts. */
-:root[data-theme="light"] {
-  color-scheme: light;
-  --bg: #f4f6fb;
-  --bg-raise: #eceff7;
-  --surface: #ffffff;
-  --surface-2: #f0f2f9;
-  --line: #d5dae8;
-  --line-soft: #e3e7f1;
-  --line-strong: #b9c1d6;
-  --header-bg: rgba(244, 246, 251, 0.85);
+/* Dark mode: same variable names, a warm muted variant. The data-theme attribute is set on <html> by theme.ts. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #171614;
+  --bg-raise: #1d1c19;
+  --surface: #22211e;
+  --surface-2: #2a2925;
+  --line: #34322d;
+  --line-soft: #2b2a26;
+  --line-strong: #474439;
+  --header-bg: rgba(23, 22, 20, 0.84);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.2), 0 8px 24px rgba(0, 0, 0, 0.18);
 
-  --text: #171b2b;
-  --text-dim: #4a526b;
-  --muted: #5f6783;
+  --text: #ece8e0;
+  --text-dim: #bdb7ac;
+  --muted: #9a948a;
 
-  --indigo: #3f4fd8;
-  --indigo-strong: #3341c4;
-  --indigo-soft: rgba(63, 79, 216, 0.1);
-  --navy: #2f4fb0;
-  --income: #15803d;
-  --scarlet: #c4122f;
-  --green: #15803d;
-  --green-soft: rgba(21, 128, 61, 0.1);
-  --vermilion: #c8432a;
-  --vermilion-text: #b3341c;
-  --vermilion-soft: rgba(200, 67, 42, 0.1);
+  --accent: #8fbf98;
+  --accent-strong: #a3cdab;
+  --accent-soft: rgba(143, 191, 152, 0.14);
+  --on-accent: #14201a;
+  --nav: #8fbf98;
+  --income: #8fcf9a;
+  --expense: #e8918a;
+  --expense-deep: color-mix(in srgb, var(--expense) 75%, black);
+  --green: #8fcf9a;
+  --green-soft: rgba(143, 207, 154, 0.1);
+  --danger: #e07a72;
+  --danger-text: #f0a39c;
+  --danger-soft: rgba(224, 122, 114, 0.12);
+  --bar-track: #34322d;
+
+  /* Separately chosen steps, checked against the dark --surface (not an automatic flip). */
+  --cat-1: #347d48;
+  --cat-2: #ca7681;
+  --cat-3: #24689b;
+  --cat-4: #ad8f2a;
+  --cat-5: #8764ad;
+  --cat-6: #b96d3f;
+  --cat-other: #6f6a61;
 }
 
 * { box-sizing: border-box; }
@@ -87,59 +116,35 @@ body {
   font-size: 16px;
   line-height: 1.55;
   color: var(--text);
-  background:
-    radial-gradient(900px 420px at 85% -8%, rgba(115, 128, 255, 0.11), transparent 65%),
-    var(--bg);
-  background-attachment: fixed;
+  background: var(--bg);
   -webkit-font-smoothing: antialiased;
 }
 
-a { color: var(--indigo); text-decoration: none; }
+a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; text-underline-offset: 3px; }
 
-:focus-visible { outline: 2px solid var(--indigo); outline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* ---- Typography -------------------------------------------------------- */
 
 h1, h2 { font-family: var(--font-display); font-weight: 400; margin: 0; letter-spacing: -0.01em; color: var(--title); }
-h1 { font-size: 2.4rem; line-height: 1.08; }
+h1 { font-size: 3.4rem; line-height: 1; }
+/* Second half of a headline ("September 2026"): lighter and italic */
+.title-accent { font-style: italic; color: var(--muted); }
 h2 {
-  font-size: 1.5rem;
+  font-size: 1.7rem;
   line-height: 1.15;
   margin: 2.25rem 0 1rem;
-  padding-top: 1.1rem;
-  border-top: 1px solid var(--line);
-}
-/* A small rotated diamond, echoing a family crest (mon), before each section heading. */
-h2::before {
-  content: "";
-  display: inline-block;
-  width: 7px;
-  height: 7px;
-  margin-right: 0.7rem;
-  background: var(--vermilion);
-  transform: rotate(45deg) translateY(-3px);
 }
 
 .eyebrow {
-  margin: 0 0 0.5rem;
+  margin: 0 0 0.6rem;
   font-family: var(--font-mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.18em;
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--navy);
+  color: var(--label);
 }
-/* A white dash before every eyebrow. */
-.eyebrow::before {
-  content: "";
-  display: inline-block;
-  width: 26px;
-  height: 2px;
-  margin-right: 0.75rem;
-  vertical-align: middle;
-  background: #fff;
-}
-:root[data-theme="light"] .eyebrow::before { background: var(--text); } /* a white dash would vanish on a light page */
 
 .muted { color: var(--muted); }
 .note { font-size: 0.82rem; color: var(--muted); margin: 0.6rem 0 0; }
@@ -158,7 +163,7 @@ h2::before {
 .site-header-inner {
   max-width: var(--chrome);
   margin: 0 auto;
-  padding: 0.4rem 1.5rem;
+  padding: 0.5rem 1.5rem;
   display: flex;
   align-items: center;
   gap: 1.25rem;
@@ -166,24 +171,22 @@ h2::before {
 .brand-link { color: inherit; display: inline-flex; }
 .brand-link:hover { text-decoration: none; }
 .brand { display: inline-flex; align-items: center; gap: 0.55rem; }
-.seal { display: block; width: 22px; height: 28px; color: var(--navy); } /* the logo drop (SVG) */
-.brand-name { font-family: var(--font-display); font-size: 1.35rem; line-height: 1; letter-spacing: -0.01em; color: var(--navy); }
+.seal { display: block; width: 22px; height: 28px; color: var(--nav); } /* the logo drop (SVG) */
+.brand-name { font-family: var(--font-display); font-size: 1.55rem; line-height: 1; letter-spacing: -0.01em; color: var(--title); }
 
 .site-nav { display: flex; align-items: center; gap: 0.25rem; flex: 1; }
 .site-nav > a {
-  padding: 0.4rem 0.65rem;
-  font-size: 0.85rem;
-  font-family: var(--font-display); /* nav text matches the titles: same font, colour at 90% strength (both set in Options) */
+  padding: 0.35rem 0.85rem;
+  font-size: 0.88rem;
   color: var(--link-soft);
-  border-bottom: 2px solid transparent;
+  border-radius: 999px;
 }
-.site-nav > a:hover { color: var(--title); text-decoration: none; }
-.site-nav > a.active { color: var(--navy); border-bottom-color: var(--navy); }
+.site-nav > a:hover { color: var(--title); background: var(--surface-2); text-decoration: none; }
+.site-nav > a.active { color: var(--nav); background: color-mix(in srgb, var(--nav) 13%, transparent); }
 /* Account menu: profile icon + panel (email and Log out) */
 .account { position: relative; margin-left: auto; }
-.account-button { display: grid; place-items: center; width: 32px; min-height: 32px; height: 32px; padding: 0; border-radius: 50%; }
+.account-button { display: grid; place-items: center; width: 34px; min-height: 34px; height: 34px; padding: 0; border-radius: 50%; }
 .account-button svg { width: 17px; height: 17px; }
-/* Same surface as the page cards and tables: --surface, 1px --line border, --radius corners, --line-soft dividers */
 .account-panel {
   position: absolute;
   right: 0;
@@ -191,20 +194,20 @@ h2::before {
   z-index: 20;
   display: grid;
   gap: 1rem;
-  width: 260px;
+  width: 270px;
   max-width: 90vw;
-  padding: 1.1rem 1.25rem;
+  padding: 1.2rem 1.3rem;
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border-radius: var(--radius-md);
   max-height: calc(100vh - 5rem); /* tall content scrolls inside the panel instead of running off the screen */
   overflow-y: auto;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.25); /* only because it floats over the page */
+  box-shadow: 0 12px 32px rgba(40, 30, 10, 0.12); /* stronger than cards: it floats over the page */
 }
 .account-rule { height: 1px; background: var(--line-soft); }
 .account-logout { width: 100%; }
 .account-panel p { margin: 0; }
-.account-label { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--label); }
+.account-label { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--label); }
 .account-email { margin-top: 0.25rem; font-size: 0.92rem; color: var(--text); overflow-wrap: anywhere; }
 .account-section { display: grid; gap: 0.6rem; }
 .font-row { display: grid; gap: 0.25rem; }
@@ -213,8 +216,8 @@ h2::before {
 .account-section .account-label { margin: 0; }
 .color-row { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 0.1rem 0.6rem; }
 .color-row span { font-size: 0.85rem; color: var(--text); }
-.color-row small { grid-column: 1; font-family: var(--font-mono); font-size: 0.68rem; color: var(--label); }
-.color-row input[type="color"] { grid-column: 2; grid-row: 1 / span 2; width: 38px; min-height: 30px; height: 30px; padding: 2px; border-radius: 6px; cursor: pointer; }
+.color-row small { grid-column: 1; font-size: 0.7rem; color: var(--label); font-variant-numeric: tabular-nums; }
+.color-row input[type="color"] { grid-column: 2; grid-row: 1 / span 2; width: 38px; min-height: 30px; height: 30px; padding: 2px; border-radius: 8px; cursor: pointer; }
 .account-panel .account-actions { display: grid; gap: 0.5rem; }
 .menu-toggle { display: none; margin-left: auto; }
 
@@ -222,23 +225,20 @@ h2::before {
 
 /* #root is a column so the footer sits at the bottom even on short pages */
 #root { min-height: 100vh; display: flex; flex-direction: column; }
-.page { flex: 1 0 auto; width: 100%; max-width: var(--content); margin: 0 auto; padding: 1.75rem 1.5rem 3rem; }
-/* Title block with a divider, so every page opens the same way */
-.page-header { margin-bottom: 1.5rem; padding-bottom: 1.1rem; border-bottom: 1px solid var(--line); }
+.page { flex: 1 0 auto; width: 100%; max-width: var(--content); margin: 0 auto; padding: 2.25rem 1.5rem 3.5rem; }
+/* Title block, so every page opens the same way */
+.page-header { margin-bottom: 1.5rem; }
 
-.month-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; margin: 0 0 1.25rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--line-soft); }
+.month-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; margin: 0 0 1.5rem; }
 .month-bar strong { font-family: var(--font-display); font-weight: 400; font-size: 1.35rem; margin-left: 0.5rem; }
 .spacer { flex: 1; }
-/* Reports: the h2 below already draws a top rule, so the bar skips its own divider */
-.month-bar.no-rule { border-bottom: 0; padding-bottom: 0; margin-bottom: 0; }
-/* ...and the first heading sits 1.5rem below the bar, the same gap as on Transactions and Budgets */
-.month-bar.no-rule ~ h2 { margin-top: 1.25rem; } /* every section heading on Reports, so the notes above them sit close to the line */
+.month-bar.no-rule { margin-bottom: 0; }
+.month-bar.no-rule ~ h2 { margin-top: 1.5rem; } /* every section heading on Reports */
 /* A hint inside the bar takes its own full-width line directly under the controls */
 .month-bar .note { flex-basis: 100%; margin: 0.15rem 0 0; }
 .inline { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
-.inline-label { display: flex; flex-direction: column; gap: 0.25rem; font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--label); }
-/* The small mono/uppercase styling is for the label text only; the controls use the normal body font */
-.inline-label select, .inline-label input { font-family: var(--font-body); font-size: 0.95rem; letter-spacing: normal; text-transform: none; }
+.inline-label { display: flex; flex-direction: column; gap: 0.25rem; font-family: var(--font-mono); font-size: 0.78rem; color: var(--label); }
+.inline-label select, .inline-label input { font-family: var(--font-body); font-size: 0.95rem; }
 /* Table filter bar (transactions, categories, budgets, category report) */
 .filters { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.6rem; margin: 0 0 1rem; }
 .filters .grow { flex: 1 1 200px; }
@@ -250,7 +250,7 @@ h2::before {
 .add-form { margin: 0 0 1.25rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--line-soft); }
 /* Sortable column headers: look like the header text, behave like buttons */
 .sort-btn { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; font: inherit; letter-spacing: inherit; text-transform: inherit; color: inherit; }
-.sort-btn:focus-visible { outline: 2px solid var(--accent, currentColor); outline-offset: 3px; }
+.sort-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .sort-arrow { font-size: 0.7em; opacity: 0.4; }
 .sort-btn.active .sort-arrow, .sort-btn:hover .sort-arrow { opacity: 1; }
 th.num .sort-btn { flex-direction: row-reverse; }
@@ -283,16 +283,16 @@ th.num .sort-btn { flex-direction: row-reverse; }
 }
 .footer-explore .footer-heading { margin: 0; }
 .footer-col.footer-explore ul { display: flex; flex-wrap: wrap; gap: 0.4rem 1.5rem; }
-.footer-tagline { margin: 0.7rem 0 0.35rem; font-family: var(--font-display); font-size: 1.2rem; line-height: 1.15; }
-.footer-text { margin: 0; font-size: 0.8rem; color: var(--muted); }
-.footer-heading { margin: 0 0 0.7rem; font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-dim); }
+.footer-tagline { margin: 0.7rem 0 0.35rem; font-family: var(--font-display); font-size: 1.45rem; line-height: 1.15; }
+.footer-text { margin: 0; font-size: 0.82rem; color: var(--muted); }
+.footer-heading { margin: 0 0 0.7rem; font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--label); }
 .footer-col ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 0.4rem; }
-.footer-col a { font-family: var(--font-display); color: var(--link-soft); font-size: 0.85rem; } /* same rule as the header links */
+.footer-col a { color: var(--link-soft); font-size: 0.86rem; } /* same rule as the header links */
 .footer-col a:hover { color: var(--title); }
-.footer-principles li { position: relative; padding-left: 1.1rem; font-size: 0.8rem; color: var(--muted); }
+.footer-principles li { position: relative; padding-left: 1.1rem; font-size: 0.82rem; color: var(--muted); }
 .footer-principles strong { color: var(--text); font-weight: 600; }
-/* A small rotated diamond as the bullet */
-.footer-principles li::before { content: ""; position: absolute; left: 0; top: 0.55em; width: 5px; height: 5px; background: var(--vermilion); transform: rotate(45deg); }
+/* A small sage dot as the bullet */
+.footer-principles li::before { content: ""; position: absolute; left: 0; top: 0.55em; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
 .footer-base {
   max-width: var(--chrome);
   margin: 0 auto;
@@ -302,20 +302,18 @@ th.num .sort-btn { flex-direction: row-reverse; }
   gap: 1rem;
   flex-wrap: wrap;
   border-top: 1px solid var(--line-soft);
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  letter-spacing: 0.06em;
+  font-size: 0.72rem;
   color: var(--muted);
 }
 
 /* ---- Forms & buttons ---------------------------------------------------- */
 
 form { display: grid; gap: 1rem; }
-label { display: grid; gap: 0.35rem; font-size: 0.82rem; color: var(--text-dim); }
+label { display: grid; gap: 0.35rem; font-size: 0.84rem; color: var(--text-dim); }
 
 input, select {
   min-height: 42px;
-  padding: 0.6rem 0.8rem;
+  padding: 0.6rem 0.85rem;
   font: inherit;
   font-size: 0.95rem;
   color: var(--text);
@@ -328,122 +326,185 @@ input:hover, select:hover { border-color: var(--line-strong); }
 
 button {
   min-height: 40px;
-  padding: 0.55rem 1.05rem;
+  padding: 0.55rem 1.15rem;
   font: inherit;
   font-size: 0.9rem;
   font-weight: 550;
-  color: #fff;
-  background: var(--indigo-strong);
+  color: var(--on-accent);
+  background: var(--accent);
   border: 1px solid transparent;
-  border-radius: var(--radius-sm);
+  border-radius: 999px;
   cursor: pointer;
 }
-button:hover:not(:disabled) { background: var(--indigo); }
+button:hover:not(:disabled) { background: var(--accent-strong); }
 button:disabled { opacity: 0.55; cursor: default; }
-button.secondary { color: var(--text); background: transparent; border-color: var(--line); }
-button.secondary:hover:not(:disabled) { background: var(--surface-2); border-color: var(--indigo); }
-button.danger { background: var(--vermilion); }
-button.danger:hover:not(:disabled) { background: #f0664b; }
+button.secondary { color: var(--text); background: var(--surface); border-color: var(--line); }
+button.secondary:hover:not(:disabled) { background: var(--surface-2); border-color: var(--line-strong); }
+button.danger { color: #fff; background: var(--danger); }
+button.danger:hover:not(:disabled) { background: color-mix(in srgb, var(--danger) 88%, black); }
+:root[data-theme="dark"] button.danger { color: #241311; }
 
 /* ---- Cards -------------------------------------------------------------- */
 
-.card, .tx-form, .stat, .budget-row {
+.card, .tx-form, .stat, .budget-row, .panel {
   background: var(--surface);
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-soft);
   border-radius: var(--radius);
+  box-shadow: var(--shadow);
 }
-.tx-form { padding: 1.25rem 1.4rem; margin-bottom: 1.25rem; }
-.tx-form h2 { font-size: 1.45rem; margin: 0; padding: 0; border: 0; }
-.tx-form h2::before { display: none; }
+.tx-form { padding: 1.4rem 1.6rem; margin-bottom: 1.25rem; }
+.tx-form h2 { font-size: 1.6rem; margin: 0; }
 
 /* Login / register */
-.card { width: 100%; max-width: 420px; margin: 12vh auto 4rem; padding: 2.25rem 2rem; }
-.card h1 { font-size: 2.1rem; margin: 1.6rem 0 1.4rem; }
+.card { width: 100%; max-width: 420px; margin: 12vh auto 4rem; padding: 2.4rem 2.2rem; }
+.card h1 { font-size: 2.6rem; margin: 1.6rem 0 1.4rem; }
 .card .brand { margin-bottom: 0.2rem; }
 
 /* Dashboard stat cards */
 .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
-.stat { display: flex; flex-direction: column; gap: 0.3rem; padding: 1.1rem 1.3rem; }
+.stat { display: flex; flex-direction: column; gap: 0.35rem; padding: 1.4rem 1.6rem; }
 .stat.wide { margin-top: 1rem; gap: 0.5rem; }
 .stat p { margin: 0; }
-.stat-label { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--label); }
-.stat-value { font-family: var(--font-display); font-size: 2.2rem; line-height: 1.1; font-variant-numeric: lining-nums; }
+.stat-label { font-family: var(--font-mono); font-size: 0.86rem; color: var(--label); }
+.stat-value { font-size: 2.1rem; font-weight: 500; line-height: 1.15; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+
+/* A dashboard section card (spending donut, monthly bars) */
+.panel { margin-top: 1rem; padding: 1.5rem 1.6rem; }
+.panel-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 0.25rem 1rem; margin-bottom: 1rem; }
+.panel-title { margin: 0; font-size: 0.92rem; color: var(--text-dim); }
+.panel-meta { font-size: 0.85rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+/* Spending by category: donut + legend */
+.donut-layout { display: grid; grid-template-columns: minmax(180px, 260px) 1fr; align-items: center; gap: 2.5rem; }
+.donut { position: relative; width: 100%; max-width: 260px; aspect-ratio: 1; margin: 0 auto; }
+.donut svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.donut-seg { fill: none; stroke-linecap: round; transition: opacity 0.15s; }
+.donut.focused .donut-seg:not(.on) { opacity: 0.3; }
+.donut-center { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; pointer-events: none; padding: 18%; }
+.donut-value { font-family: var(--font-display); font-size: 2.6rem; line-height: 1; letter-spacing: -0.01em; }
+.donut-caption { margin-top: 0.4rem; font-size: 0.82rem; color: var(--muted); overflow-wrap: anywhere; }
+.legend { margin: 0; padding: 0; list-style: none; display: grid; gap: 0.15rem; }
+.legend li {
+  display: grid;
+  grid-template-columns: 10px 1fr auto auto;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: var(--radius-sm);
+  cursor: default;
+}
+.legend li.on { background: var(--surface-2); }
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+.legend-name { font-size: 1rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.legend-amount { font-size: 0.85rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.legend-share { min-width: 3.2em; text-align: right; font-size: 0.95rem; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+
+/* Net cash flow per month: soft bars, the selected month in the accent colour */
+.month-bars { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: clamp(0.5rem, 3vw, 2rem); }
+.month-col {
+  all: unset;
+  display: grid;
+  grid-template-rows: 130px auto;
+  gap: 0.5rem;
+  cursor: pointer;
+  text-align: center;
+}
+.month-col:hover:not(:disabled) { background: none; } /* beat the global button hover */
+.month-col:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 8px; }
+.month-plot { position: relative; }
+/* Zero line sits at --zero (percent from the bottom); positive bars grow up from it, negative ones down. */
+.month-bar-fill { position: absolute; left: 12%; right: 12%; border-radius: 10px; background: var(--bar-track); transition: background-color 0.15s; }
+.month-col:hover .month-bar-fill { background: color-mix(in srgb, var(--bar-track) 70%, var(--text) 10%); }
+.month-col.selected .month-bar-fill { background: color-mix(in srgb, var(--accent) 45%, var(--surface)); }
+.month-bar-fill.negative { background: color-mix(in srgb, var(--expense) 30%, var(--surface)); }
+.month-col.selected .month-bar-fill.negative { background: color-mix(in srgb, var(--expense) 60%, var(--surface)); }
+.month-zero { position: absolute; left: 0; right: 0; height: 1px; background: var(--line); }
+.month-name { font-size: 0.8rem; color: var(--muted); }
+.month-col.selected .month-name { color: var(--text); font-weight: 600; }
 
 /* Budget cards */
-.budget-row { padding: 1.2rem 1.4rem; margin-bottom: 0.9rem; transition: border-color 0.15s; }
+.budget-row { padding: 1.3rem 1.6rem; margin-bottom: 0.9rem; transition: border-color 0.15s; }
 .budget-row:hover { border-color: var(--line-strong); }
 .budget-head, .budget-foot { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; }
 .budget-head { margin-bottom: 0.7rem; }
-.budget-head strong { font-family: var(--font-display); font-weight: 400; font-size: 1.35rem; }
+.budget-head strong { font-family: var(--font-display); font-weight: 400; font-size: 1.55rem; }
 .budget-foot { margin-top: 0.7rem; font-size: 0.85rem; }
 .actions-inline { display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap; }
-.actions-inline button { min-height: 34px; padding: 0.3rem 0.7rem; font-size: 0.82rem; }
+.actions-inline button { min-height: 34px; padding: 0.3rem 0.8rem; font-size: 0.82rem; }
 
-.bar { height: 6px; background: var(--bg-raise); border-radius: 3px; overflow: hidden; }
-.bar-fill { height: 100%; background: var(--navy); border-radius: 3px; } /* follows the Navigation colour; .over turns it red */
-.bar-fill.over { background: var(--scarlet-deep); }
+.bar { height: 8px; background: var(--bar-track); border-radius: 999px; overflow: hidden; }
+.bar-fill { height: 100%; background: var(--nav); border-radius: 999px; } /* follows the Navigation colour; .over turns it red */
+.bar-fill.over { background: var(--expense-deep); }
 
 /* ---- Messages ----------------------------------------------------------- */
 
 .status { padding: 4rem 0; text-align: center; color: var(--muted); }
-.notice, .error { margin: 0 0 1.25rem; padding: 0.75rem 1rem; font-size: 0.9rem; border-radius: var(--radius-sm); border-left: 2px solid; }
-.notice { color: var(--green); background: var(--green-soft); border-color: var(--green); }
-.error { color: var(--vermilion-text); background: var(--vermilion-soft); border-color: var(--vermilion); }
+.notice, .error { margin: 0 0 1.25rem; padding: 0.8rem 1.1rem; font-size: 0.9rem; border-radius: var(--radius-md); }
+.notice { color: var(--green); background: var(--green-soft); }
+.error { color: var(--danger-text); background: var(--danger-soft); }
 .status .error { display: inline-block; }
-.over-text, .expense-text, td.expense { color: var(--scarlet); }
+.over-text, .expense-text, td.expense { color: var(--expense); }
 .over-text { font-weight: 600; }
 .income-text, td.income { color: var(--income); }
 
 /* ---- Tables ------------------------------------------------------------- */
 
-table { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
-th, td { padding: 0.65rem 1rem; text-align: left; border-bottom: 1px solid var(--line-soft); font-size: 0.92rem; }
-th { font-family: var(--font-mono); font-size: 0.68rem; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--label); background: var(--bg-raise); }
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--surface);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+th, td { padding: 0.7rem 1rem; text-align: left; border-bottom: 1px solid var(--line-soft); font-size: 0.92rem; }
+th { font-family: var(--font-mono); font-size: 0.78rem; font-weight: 500; color: var(--label); background: var(--bg-raise); }
 tbody tr:hover { background: var(--surface-2); }
 tbody tr:last-child td, tfoot tr:last-child th { border-bottom: 0; }
-tfoot th { color: var(--label-strong); font-size: 0.8rem; border-top: 1px solid var(--line); background: var(--bg-raise); }
+tfoot th { color: var(--label-strong); font-size: 0.85rem; border-top: 1px solid var(--line); background: var(--bg-raise); }
 .num { text-align: right; font-variant-numeric: tabular-nums; }
 td.actions { display: flex; gap: 0.4rem; align-items: center; justify-content: flex-end; }
-td.actions button { min-height: 34px; padding: 0.3rem 0.7rem; font-size: 0.82rem; }
+td.actions button { min-height: 34px; padding: 0.3rem 0.8rem; font-size: 0.82rem; }
 
-.cell-bar { display: block; min-width: 90px; height: 5px; margin-top: 0.4rem; background: var(--bg-raise); border-radius: 3px; overflow: hidden; }
-.cell-bar .fill { display: block; height: 100%; border-radius: 3px; }
+.cell-bar { display: block; min-width: 90px; height: 6px; margin-top: 0.4rem; background: var(--bar-track); border-radius: 999px; overflow: hidden; }
+.cell-bar .fill { display: block; height: 100%; border-radius: 999px; }
 .fill.income { background: var(--income); }
 
-/* Share of spending: follows the Navigation colour. Navy text alone would be unreadable on the dark
-   background, so the value is a pill (the navy darkened) with pale text, and the bar uses the navy itself. */
+/* Share of spending: a soft pill in the Navigation colour. */
 .share {
   display: inline-block;
   padding: 0.1rem 0.6rem;
   font-size: 0.85rem;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-  color: #dbe4ff;
-  background: color-mix(in srgb, var(--navy) 60%, black);
+  color: color-mix(in srgb, var(--nav) 70%, var(--text));
+  background: color-mix(in srgb, var(--nav) 14%, transparent);
   border-radius: 999px;
 }
-.fill.share-fill { background: var(--navy); }
-/* Budget usage: navy at or under the limit, red once spending is over it. */
-.share.over { background: #b3122f; color: #ffe0e5; }
-.fill.spend { background: var(--scarlet-deep); }
+.fill.share-fill { background: var(--nav); }
+/* Budget usage: nav colour at or under the limit, red once spending is over it. */
+.share.over { color: var(--danger-text); background: var(--danger-soft); }
+.fill.spend { background: var(--expense-deep); }
 
 /* ---- Motion ------------------------------------------------------------- */
 
 @media (prefers-reduced-motion: no-preference) {
-  button, input, select, .budget-row { transition: background-color 0.15s, border-color 0.15s, color 0.15s; }
+  button, input, select, .budget-row, .site-nav > a { transition: background-color 0.15s, border-color 0.15s, color 0.15s; }
 }
 
 /* ---- Mobile (and narrow windows) ---------------------------------------- */
 
 @media (max-width: 760px) {
-  h1 { font-size: 2rem; }
-  h2 { font-size: 1.35rem; margin-top: 1.75rem; }
+  h1 { font-size: 2.6rem; }
+  h2 { font-size: 1.45rem; margin-top: 1.75rem; }
 
-  .page { padding: 1.25rem 1rem 2.5rem; }
+  .page { padding: 1.5rem 1rem 2.5rem; }
   .footer-inner { grid-template-columns: 1fr; gap: 1.5rem; padding: 1.5rem 1rem 1.25rem; }
   .footer-base { padding: 0.7rem 1rem 1rem; flex-direction: column; gap: 0.25rem; }
-  .page-header { margin-bottom: 1.1rem; padding-bottom: 0.9rem; }
-  .card { margin: 6vh 1rem 3rem; padding: 1.75rem 1.4rem; }
+  .page-header { margin-bottom: 1.1rem; }
+  .card { margin: 6vh 1rem 3rem; padding: 1.9rem 1.5rem; }
 
   .grid-2 { grid-template-columns: 1fr; }
   .tx-form { padding: 1.25rem 1.1rem; }
@@ -454,7 +515,12 @@ td.actions button { min-height: 34px; padding: 0.3rem 0.7rem; font-size: 0.82rem
   .inline-label { flex: 1 1 130px; }
   .inline-label select, .inline-label input { width: 100%; }
 
-  .stat-value { font-size: 1.9rem; }
+  .stat { padding: 1.15rem 1.3rem; }
+  .stat-value { font-size: 1.8rem; }
+  .panel { padding: 1.25rem 1.1rem; }
+  .donut-layout { grid-template-columns: 1fr; gap: 1.25rem; }
+  .donut { max-width: 220px; }
+  .month-col { grid-template-rows: 100px auto; }
   .budget-foot { flex-direction: column; align-items: flex-start; }
 
   /* Bigger touch targets */
@@ -481,10 +547,10 @@ td.actions button { min-height: 34px; padding: 0.3rem 0.7rem; font-size: 0.82rem
   .site-header-inner, .footer-inner, .footer-base { padding-inline: 4rem; }
 }
 
-/* Tablet and small laptop: tighter header links; footer becomes two columns with the brand on top */
+/* Tablet and small laptop: tighter header links */
 @media (min-width: 761px) and (max-width: 1024px) {
-  .site-header-inner { padding: 0.4rem 1.5rem; gap: 1rem; }
-  .site-nav > a { padding: 0.4rem 0.5rem; font-size: 0.82rem; }
+  .site-header-inner { padding: 0.5rem 1.5rem; gap: 1rem; }
+  .site-nav > a { padding: 0.35rem 0.6rem; font-size: 0.84rem; }
 }
 
 /* Tablet and below: the footer sections stack, and the page links still sit side by side (wrapping if needed) */
@@ -498,8 +564,7 @@ td.actions button { min-height: 34px; padding: 0.3rem 0.7rem; font-size: 0.82rem
   .menu-toggle { display: inline-flex; align-items: center; }
   .site-nav { display: none; flex: 1 0 100%; flex-direction: column; align-items: stretch; gap: 0; padding: 0.4rem 0 0.6rem; border-top: 1px solid var(--line-soft); }
   .site-nav.open { display: flex; }
-  .site-nav > a { padding: 0.85rem 0.25rem; border-bottom: 1px solid var(--line-soft); font-size: 1rem; }
-  .site-nav > a.active { border-bottom-color: var(--line-soft); color: var(--navy); }
+  .site-nav > a { padding: 0.85rem 0.6rem; border-radius: var(--radius-sm); font-size: 1rem; }
   /* Inside the folded menu the account panel opens inline instead of floating */
   .account { margin: 0.9rem 0 0; }
   .account-button { width: 46px; height: 46px; }
@@ -509,9 +574,9 @@ td.actions button { min-height: 34px; padding: 0.3rem 0.7rem; font-size: 0.82rem
 /* Small phones */
 @media (max-width: 480px) {
   .site-header-inner { padding-inline: 0.85rem; }
-  .brand .brand-name { font-size: 1.25rem; }
+  .brand .brand-name { font-size: 1.4rem; }
   .brand .seal { width: 19px; height: 24px; }
-  .footer-tagline { font-size: 1.1rem; }
+  .footer-tagline { font-size: 1.3rem; }
   .footer-explore { gap: 0.5rem 1rem; }
   .footer-col.footer-explore ul { gap: 0.4rem 1rem; }
   .footer-text { max-width: none; }
