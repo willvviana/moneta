@@ -3,11 +3,16 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ApiError } from "../api";
 import { useAuth } from "../auth";
 import { Brand } from "../components/Brand";
+import { LanguageSelect } from "../components/LanguageSelect";
+import { errorText } from "../i18n/errors";
+import { useI18n } from "../i18n/locale";
 import { MIN_PASSWORD_LENGTH } from "../passwordPolicy";
 
 // One form for both screens; only the title, endpoint and link text differ.
 export function AuthPage({ mode }: { mode: "login" | "register" }) {
   const { login, register } = useAuth();
+  const { lang, t } = useI18n();
+  const a = t.auth;
   const navigate = useNavigate();
   const location = useLocation();
   const [email, setEmail] = useState("");
@@ -30,7 +35,7 @@ export function AuthPage({ mode }: { mode: "login" | "register" }) {
       await (isLogin ? login(email, password) : register(email, password));
       navigate(from, { replace: true });
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Something went wrong");
+      setError(err instanceof ApiError ? errorText(err, lang) : t.common.somethingWrong);
     } finally {
       setSubmitting(false);
     }
@@ -38,17 +43,20 @@ export function AuthPage({ mode }: { mode: "login" | "register" }) {
 
   return (
     <main className="card auth-card">
-      <Brand />
-      <h1>{isLogin ? "Log in to Moneta" : "Create your Moneta account"}</h1>
-      {expired && <p className="notice">Your session expired. Please log in again.</p>}
-      {passwordChanged && <p className="notice" role="status">Password changed. Log in with your new password.</p>}
+      <div className="auth-top">
+        <Brand />
+        <LanguageSelect className="inline-label auth-lang" />
+      </div>
+      <h1>{isLogin ? a.loginTitle : a.registerTitle}</h1>
+      {expired && <p className="notice">{a.expired}</p>}
+      {passwordChanged && <p className="notice" role="status">{a.passwordChanged}</p>}
       <form onSubmit={onSubmit}>
         <label>
-          Email
+          {a.email}
           <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" required />
         </label>
         <label>
-          Password
+          {a.password}
           <input
             type="password"
             value={password}
@@ -58,19 +66,19 @@ export function AuthPage({ mode }: { mode: "login" | "register" }) {
             required
           />
         </label>
-        {!isLogin && <small>At least {MIN_PASSWORD_LENGTH} characters.</small>}
+        {!isLogin && <small>{a.minLength(MIN_PASSWORD_LENGTH)}</small>}
         {error && <p role="alert" className="error">{error}</p>}
         <button type="submit" disabled={submitting}>
-          {submitting ? "Please wait…" : isLogin ? "Log in" : "Create account"}
+          {submitting ? t.common.pleaseWait : isLogin ? a.login : a.createAccount}
         </button>
       </form>
       <p>
         {isLogin ? (
           <>
-            No account? <Link to="/register">Register</Link> · <Link to="/change-password">Change password</Link>
+            {a.noAccount} <Link to="/register">{a.register}</Link> · <Link to="/change-password">{a.changePassword}</Link>
           </>
         ) : (
-          <>Already registered? <Link to="/login">Log in</Link></>
+          <>{a.alreadyRegistered} <Link to="/login">{a.login}</Link></>
         )}
       </p>
     </main>

@@ -13,7 +13,8 @@ Moneta is a full-stack personal finance app for tracking income and expenses, se
 - **Dashboard:** income, expenses, net cash flow and budget usage for a selected month.
 - **Reports:** spending by category and income/expenses/net by month over a range of up to 60 months.
 - **Accounts:** register, log in, log out, change password (ends every session).
-- **Appearance:** light/dark mode and custom colours and fonts, saved in the browser (Profile icon, then Options).
+- **Appearance:** light/dark mode, saved in the browser (Profile icon, then Options).
+- **Languages:** English (US) and Portuguese (Brazil), switchable in Options and on the sign-in pages. Portuguese shows amounts as `R$ 1.234,56`; the stored cents are the same and nothing is converted (see `docs/DECISIONS.md`, "Languages").
 
 Out of scope for version 1: bank imports, investments, shared households, recurring transactions, forecasting, multiple currencies.
 
@@ -147,6 +148,8 @@ Invalid `APP_ORIGIN` or `TRUST_PROXY` values stop the server at startup.
 ## API
 
 All routes except `register`, `login`, `change-password`, `logout` and `/health` require a session cookie. Every route only ever sees the signed-in user's data.
+
+Errors are JSON: `{ "error": "<English message>", "code": "<CODE>" }`, for example `{ "error": "Category not found", "code": "CATEGORY_NOT_FOUND" }`. The UI translates by `code`; the codes are listed in `backend/src/errors.ts`.
 
 | Method and path | Purpose |
 |---|---|

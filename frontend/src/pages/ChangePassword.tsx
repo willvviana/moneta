@@ -2,12 +2,17 @@ import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api, ApiError } from "../api";
 import { Brand } from "../components/Brand";
+import { LanguageSelect } from "../components/LanguageSelect";
+import { errorText } from "../i18n/errors";
+import { useI18n } from "../i18n/locale";
 import { MIN_PASSWORD_LENGTH } from "../passwordPolicy";
 
 // Reachable while logged out. The server verifies the CURRENT password, so this isn't a "reset":
 // it only works for someone who still knows the old password.
 export function ChangePassword() {
   const navigate = useNavigate();
+  const { lang, t } = useI18n();
+  const c = t.changePassword;
   const [email, setEmail] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -20,8 +25,8 @@ export function ChangePassword() {
     setError(null);
     // Quick feedback only: the server validates everything again.
     // The length check is left to minLength on the input.
-    if (newPassword !== confirm) return setError("The new passwords don't match.");
-    if (newPassword === currentPassword) return setError("The new password must be different from the current one.");
+    if (newPassword !== confirm) return setError(c.mismatch);
+    if (newPassword === currentPassword) return setError(c.sameAsCurrent);
 
     setSubmitting(true);
     try {
@@ -29,7 +34,7 @@ export function ChangePassword() {
       // Every session was ended on the server, so send them to log in with the new password.
       navigate("/login", { replace: true, state: { passwordChanged: true } });
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Something went wrong");
+      setError(err instanceof ApiError ? errorText(err, lang) : t.common.somethingWrong);
     } finally {
       setSubmitting(false);
     }
@@ -37,15 +42,18 @@ export function ChangePassword() {
 
   return (
     <main className="card auth-card">
-      <Brand />
-      <h1>Change your password</h1>
+      <div className="auth-top">
+        <Brand />
+        <LanguageSelect className="inline-label auth-lang" />
+      </div>
+      <h1>{c.title}</h1>
       <form onSubmit={onSubmit}>
         <label>
-          Email
+          {t.auth.email}
           <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" required />
         </label>
         <label>
-          Current password
+          {c.current}
           <input
             type="password"
             value={currentPassword}
@@ -55,7 +63,7 @@ export function ChangePassword() {
           />
         </label>
         <label>
-          New password
+          {c.new}
           <input
             type="password"
             value={newPassword}
@@ -65,9 +73,9 @@ export function ChangePassword() {
             required
           />
         </label>
-        <small>At least {MIN_PASSWORD_LENGTH} characters. You'll be signed out on all devices.</small>
+        <small>{c.hint(MIN_PASSWORD_LENGTH)}</small>
         <label>
-          Confirm new password
+          {c.confirm}
           <input
             type="password"
             value={confirm}
@@ -83,11 +91,11 @@ export function ChangePassword() {
           </p>
         )}
         <button type="submit" disabled={submitting}>
-          {submitting ? "Please wait…" : "Change password"}
+          {submitting ? t.common.pleaseWait : c.submit}
         </button>
       </form>
       <p>
-        <Link to="/login">Back to log in</Link>
+        <Link to="/login">{c.back}</Link>
       </p>
     </main>
   );

@@ -55,7 +55,7 @@ app.use("/api/reports", reportsRouter);
 
 // Unknown API paths answer with JSON, never with the frontend's HTML.
 app.use("/api", (_req, res) => {
-  res.status(404).json({ error: "Not found" });
+  res.status(404).json({ error: "Not found", code: "NOT_FOUND" });
 });
 
 // The built React app (frontend/dist), when it exists. FRONTEND_DIST overrides the default location.
@@ -65,15 +65,15 @@ mountFrontend(app, process.env.FRONTEND_DIST ?? path.resolve(process.cwd(), "../
 // Only AppError messages reach the client; everything else is a generic 500.
 app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
   if (err instanceof AppError) {
-    res.status(err.status).json({ error: err.message });
+    res.status(err.status).json({ error: err.message, code: err.code });
     return;
   }
   // body-parser errors (malformed JSON, payload too large) carry a 4xx status.
   const status = (err as { status?: number } | null)?.status;
   if (status === 400 || status === 413) {
-    res.status(status).json({ error: "Invalid request body" });
+    res.status(status).json({ error: "Invalid request body", code: "INVALID_BODY" });
     return;
   }
   console.error("Unhandled error:", safeLogDetails(err)); // detail stays in server logs, minus user data
-  res.status(500).json({ error: "Internal server error" });
+  res.status(500).json({ error: "Internal server error", code: "INTERNAL" });
 });

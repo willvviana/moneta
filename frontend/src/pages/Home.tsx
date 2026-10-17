@@ -5,8 +5,10 @@ import { MonthPicker } from "../components/MonthPicker";
 import { NetByMonth, SpendingDonut } from "../components/DashboardCharts";
 import { buildSlices } from "../charts";
 import { getDashboard, type Dashboard } from "../dashboard";
+import { errorText } from "../i18n/errors";
+import { useI18n } from "../i18n/locale";
 import { formatCents, formatSignedCents, percentUsed } from "../money";
-import { currentMonth, monthLabel, shiftMonth } from "../month";
+import { capitalize, currentMonth, monthLabel, monthName as monthNameOf, shiftMonth } from "../month";
 import { getOverTime, getSpendingByCategory, type CategoryReport, type MonthRow } from "../reports";
 
 const TREND_MONTHS = 6; // the bar chart shows the selected month and the five before it
@@ -20,10 +22,12 @@ interface HomeData {
 // The dashboard. Every number comes from the server (the dashboard and the two report endpoints, which
 // share the same definitions); this page only formats and lays them out.
 export function Home() {
+  const { lang, t } = useI18n();
+  const h = t.home;
   const [month, setMonth] = useState(currentMonth());
   const [data, setData] = useState<HomeData | null>(null);
   const [loadState, setLoadState] = useState<"loading" | "ready" | "error">("loading");
-  const [loadError, setLoadError] = useState("");
+  const [loadError, setLoadError] = useState<unknown>(null);
   const latest = useRef(0);
 
   const load = useCallback(async (m: string) => {
@@ -40,7 +44,7 @@ export function Home() {
       setLoadState("ready");
     } catch (err) {
       if (requestId !== latest.current) return;
-      setLoadError(err instanceof Error ? err.message : "Unknown error");
+      setLoadError(err);
       setLoadState("error");
     }
   }, []);
@@ -52,102 +56,97 @@ export function Home() {
   const d = data?.dashboard;
   const b = d?.budgets;
   const net = d?.netCashFlowCents ?? 0;
-  const [year, monthNumber] = month.split("-").map(Number) as [number, number];
-  const monthName = new Date(year, monthNumber - 1, 1).toLocaleDateString("en-US", { month: "long" });
+  const year = month.slice(0, 4);
+  const monthName = monthNameOf(month, lang); // lowercase in Portuguese ("outubro"): right mid-sentence
+  const label = monthLabel(month, lang);
 
   return (
     <main className="page">
-      <PageHeader eyebrow="Your money" title={monthName} accent={year} />
+      <PageHeader eyebrow={h.eyebrow} title={capitalize(monthName)} accent={year} />
 
       <MonthPicker month={month} onChange={setMonth} />
 
-      {loadState === "loading" && <p className="status">Loading…</p>}
+      {loadState === "loading" && <p className="status">{t.common.loading}</p>}
       {loadState === "error" && (
         <div className="status">
-          <p className="error">Couldn't load the dashboard: {loadError}</p>
-          <button onClick={() => void load(month)}>Retry</button>
+          <p className="error">{h.loadFailed(errorText(loadError, lang))}</p>
+          <button onClick={() => void load(month)}>{t.common.retry}</button>
         </div>
       )}
 
       {loadState === "ready" && data && d && b && (
         <>
-          <section className="cards" aria-label={`Cash flow for ${monthLabel(month)}`}>
+          <section className="cards" aria-label={h.cashFlowAria(label)}>
             <div className="stat">
-              <span className="stat-label">Income</span>
-              <span className="stat-value">{formatCents(d.incomeCents)}</span>
+              <span className="stat-label">{t.common.income}</span>
+              <span className="stat-value">{formatCents(d.incomeCents, lang)}</span>
             </div>
             <div className="stat">
-              <span className="stat-label">Expenses</span>
-              <span className="stat-value">{formatCents(d.expensesCents)}</span>
+              <span className="stat-label">{t.common.expenses}</span>
+              <span className="stat-value">{formatCents(d.expensesCents, lang)}</span>
             </div>
             <div className="stat">
-              <span className="stat-label">Net cash flow</span>
+              <span className="stat-label">{t.common.netCashFlow}</span>
               <span className={`stat-value ${net < 0 ? "expense-text" : net > 0 ? "income-text" : ""}`}>
-                {formatSignedCents(net)}
+                {formatSignedCents(net, lang)}
               </span>
             </div>
           </section>
-          <p className="muted note">
-            Net cash flow is income minus expenses for {monthLabel(month)}. It is not an account balance.
-          </p>
+          <p className="muted note">{h.netNote(label)}</p>
 
           <section className="panel" aria-labelledby="spending-title">
             <div className="panel-head">
               <p className="panel-title" id="spending-title">
-                Spending by category
+                {h.spendingByCategory}
               </p>
               <Link to="/reports" className="panel-meta">
-                Reports
+                {h.reportsLink}
               </Link>
             </div>
             {data.byCategory.totalSpentCents === 0 ? (
-              <p className="muted">No spending in {monthLabel(month)}.</p>
+              <p className="muted">{h.noSpending(label)}</p>
             ) : (
               <SpendingDonut
-                slices={buildSlices(data.byCategory.categories)}
+                slices={buildSlices(data.byCategory.categories, t.charts.other)}
                 totalCents={data.byCategory.totalSpentCents}
-                caption={`spent in ${monthName}`}
+                caption={h.spentIn(monthName)}
               />
             )}
             {data.byCategory.totalSpentCents > 0 && (
-              <p className="muted note">Shares are rounded down, so they can add up to slightly less than 100%.</p>
+              <p className="muted note">{h.sharesNote}</p>
             )}
           </section>
 
-          <section className="panel" aria-label="Net cash flow by month">
+          <section className="panel" aria-label={t.charts.netByMonth}>
             <NetByMonth months={data.trend} selected={month} onSelect={setMonth} />
           </section>
 
           <section className="stat wide">
             <div className="budget-head">
-              <strong>Budgets</strong>
-              <Link to="/budgets">{b.budgetCount === 0 ? "Set a budget" : "Manage"}</Link>
+              <strong>{h.budgets}</strong>
+              <Link to="/budgets">{b.budgetCount === 0 ? h.setBudget : h.manage}</Link>
             </div>
             {b.budgetCount === 0 ? (
-              <p className="muted">No budgets set for {monthLabel(month)}.</p>
+              <p className="muted">{h.noBudgets(label)}</p>
             ) : (
               <>
                 <p>
-                  {formatCents(b.spentInBudgetedCategoriesCents)} spent of {formatCents(b.totalBudgetedCents)} budgeted{" "}
+                  {h.spentOfBudgeted(formatCents(b.spentInBudgetedCategoriesCents, lang), formatCents(b.totalBudgetedCents, lang))}{" "}
                   <span className={b.spentInBudgetedCategoriesCents > b.totalBudgetedCents ? "share over" : "share"}>
                     {percentUsed(b.spentInBudgetedCategoriesCents, b.totalBudgetedCents)}%
                   </span>
                 </p>
                 <p className={b.overBudgetCount > 0 ? "over-text" : "muted"}>
-                  {b.overBudgetCount === 0
-                    ? "No categories over budget."
-                    : `${b.overBudgetCount} ${b.overBudgetCount === 1 ? "category is" : "categories are"} over budget.`}
+                  {b.overBudgetCount === 0 ? h.noneOver : h.over(b.overBudgetCount)}
                 </p>
-                <p className="muted note">
-                  Counts only categories that have a budget, so it can be lower than total expenses above.
-                </p>
+                <p className="muted note">{h.budgetNote}</p>
               </>
             )}
           </section>
 
           {d.incomeCents === 0 && d.expensesCents === 0 && (
             <p className="status">
-              No transactions in {monthLabel(month)}. <Link to="/transactions">Add one</Link>.
+              {h.noTransactions(label)} <Link to="/transactions">{h.addOne}</Link>.
             </p>
           )}
         </>

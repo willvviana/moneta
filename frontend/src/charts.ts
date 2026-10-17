@@ -23,7 +23,8 @@ function homeSlot(id: string): number {
 // Categories with spending, largest first. With more than CATEGORY_SLOTS categories the smallest
 // ones are summed into one neutral "Other" slice, so every slice can have a distinct colour.
 // The slices always add up to the sum of the input categories (no cents are lost or invented).
-export function buildSlices(categories: CategorySpending[]): Slice[] {
+// `otherLabel` names that slice in the current language, e.g. (3) => "Other (3)".
+export function buildSlices(categories: CategorySpending[], otherLabel: (count: number) => string): Slice[] {
   const spent = categories
     .filter((c) => c.spentCents > 0)
     .sort((a, b) => b.spentCents - a.spentCents || a.categoryName.localeCompare(b.categoryName));
@@ -40,7 +41,7 @@ export function buildSlices(categories: CategorySpending[]): Slice[] {
   if (rest.length > 0) {
     slices.push({
       key: "other",
-      name: `Other (${rest.length})`,
+      name: otherLabel(rest.length),
       cents: rest.reduce((sum, c) => sum + c.spentCents, 0),
       color: "var(--cat-other)",
     });

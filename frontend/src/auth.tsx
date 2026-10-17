@@ -12,7 +12,7 @@ type AuthState =
   | { status: "loading" }
   | { status: "authenticated"; user: User }
   | { status: "unauthenticated"; reason?: "expired" }
-  | { status: "error"; message: string };
+  | { status: "error"; error: unknown }; // shown with errorText(), in the current language
 
 interface AuthContextValue {
   state: AuthState;
@@ -34,7 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .catch((err: unknown) => {
         if (cancelled) return;
         if (err instanceof ApiError && err.status === 401) setState({ status: "unauthenticated" });
-        else setState({ status: "error", message: err instanceof Error ? err.message : "Unknown error" });
+        else setState({ status: "error", error: err });
       });
     return () => {
       cancelled = true;
