@@ -59,9 +59,9 @@
   --radius: 22px; /* cards */
   --radius-md: 14px; /* tables, panels */
   --radius-sm: 10px; /* inputs */
-  --font-display: "Instrument Serif", "Iowan Old Style", Georgia, serif; /* theme.ts must use the same defaults */
+  --font-display: "Instrument Serif", "Iowan Old Style", Georgia, serif;
   --font-body: "Inter Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-mono: "Inter Variable", system-ui, -apple-system, "Segoe UI", sans-serif; /* the "label" font role */
+  --font-mono: "Inter Variable", system-ui, -apple-system, "Segoe UI", sans-serif; /* labels, table headers, totals */
 }
 
 /* Dark mode: same variable names, a warm muted variant. The data-theme attribute is set on <html> by theme.ts. */
@@ -214,10 +214,6 @@ h2 {
 .font-row select { width: 100%; min-height: 36px; padding: 0.35rem 0.6rem; font-size: 0.88rem; }
 .account-options { display: grid; gap: 1rem; }
 .account-section .account-label { margin: 0; }
-.color-row { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 0.1rem 0.6rem; }
-.color-row span { font-size: 0.85rem; color: var(--text); }
-.color-row small { grid-column: 1; font-size: 0.7rem; color: var(--label); font-variant-numeric: tabular-nums; }
-.color-row input[type="color"] { grid-column: 2; grid-row: 1 / span 2; width: 38px; min-height: 30px; height: 30px; padding: 2px; border-radius: 8px; cursor: pointer; }
 .account-panel .account-actions { display: grid; gap: 0.5rem; }
 .menu-toggle { display: none; margin-left: auto; }
 

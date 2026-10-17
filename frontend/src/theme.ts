@@ -1,101 +1,32 @@
 import { useSyncExternalStore } from "react";
 
-// Appearance: dark/light mode plus a few colours the user can override.
-// Saved in this browser's localStorage only (not on the server), so it is per device.
-// Applied by setting `data-theme` and CSS variables on <html>; styles.css does the rest.
+// Appearance: dark or light mode. Saved in this browser's localStorage only (not on the server),
+// so it is per device. Applied by setting `data-theme` on <html>; styles.css does the rest.
+//
+// Custom colours and fonts were removed (2026-10-16, see docs/DECISIONS.md). Values saved by that
+// feature are ignored on load and dropped on the next save, so nobody is stuck with an override
+// they can no longer reset.
 
 export type Mode = "dark" | "light";
-export type ColorRole = "title" | "nav" | "income" | "expense" | "label";
 
-// A role can drive several CSS variables (the labels colour also colours the totals rows).
-// Their labels are translated: account.colorRoles in i18n/messages.ts.
-export const COLOR_ROLES: { role: ColorRole; cssVars: string[] }[] = [
-  { role: "title", cssVars: ["--title"] },
-  { role: "nav", cssVars: ["--nav"] },
-  { role: "income", cssVars: ["--income"] },
-  { role: "expense", cssVars: ["--expense"] },
-  { role: "label", cssVars: ["--label", "--label-strong"] },
-];
-
-// Must match the defaults in styles.css; they are only used to preselect the colour pickers.
-export const DEFAULT_COLORS: Record<Mode, Record<ColorRole, string>> = {
-  dark: { title: "#ece8e0", nav: "#8fbf98", income: "#8fcf9a", expense: "#e8918a", label: "#9a948a" },
-  light: { title: "#2a2925", nav: "#4f7d5a", income: "#3f7d4c", expense: "#b4534d", label: "#6f6a60" },
-};
-
-// Fonts the user can pick. Instrument Serif, Inter and JetBrains Mono are bundled; the rest are system fonts or generic families.
-// Defaults: Instrument Serif for titles, Inter for text and labels.
-export type FontRole = "display" | "body" | "label";
-export type FontChoice = "arial" | "instrument" | "inter" | "jetbrains" | "sans" | "serif" | "times" | "mono";
-
-export const FONT_CHOICES: { id: FontChoice; label: string; stack: string }[] = [
-  { id: "arial", label: "Arial", stack: 'Arial, "Helvetica Neue", Helvetica, sans-serif' },
-  { id: "instrument", label: "Instrument Serif", stack: '"Instrument Serif", "Iowan Old Style", Georgia, serif' },
-  { id: "inter", label: "Inter", stack: '"Inter Variable", system-ui, -apple-system, "Segoe UI", sans-serif' },
-  { id: "jetbrains", label: "JetBrains Mono", stack: '"JetBrains Mono Variable", ui-monospace, "SFMono-Regular", Menlo, monospace' },
-  { id: "sans", label: "Sans-serif", stack: "sans-serif" },
-  { id: "serif", label: "Serif", stack: "serif" },
-  { id: "times", label: "Times New Roman", stack: '"Times New Roman", Times, serif' },
-  { id: "mono", label: "Monospace", stack: "monospace" },
-];
-
-// `fallback` is what styles.css uses when nothing is overridden (shown as "(Default)" in the menu).
-// Their labels are translated: account.fontRoles in i18n/messages.ts.
-export const FONT_ROLES: { role: FontRole; cssVar: string; fallback: FontChoice }[] = [
-  { role: "display", cssVar: "--font-display", fallback: "instrument" },
-  { role: "body", cssVar: "--font-body", fallback: "inter" },
-  // Small uppercase labels: page eyebrows, table headers and totals, card labels.
-  { role: "label", cssVar: "--font-mono", fallback: "inter" },
-];
-
-// Overrides are kept per mode: a neon green that suits the dark theme would be unreadable on white.
-export type ThemeState = {
-  mode: Mode;
-  overrides: Record<Mode, Partial<Record<ColorRole, string>>>;
-  fonts: Record<FontRole, FontChoice>; // same in both modes; equal to the role's fallback means "not overridden"
-};
+export type ThemeState = { mode: Mode };
 
 const STORAGE_KEY = "moneta.theme";
 const STORAGE_VERSION = 3; // bump when the meaning of a stored value changes
-const HEX = /^#[0-9a-f]{6}$/i;
 
-export const INITIAL_STATE: ThemeState = { mode: "light", overrides: { dark: {}, light: {} }, fonts: { display: "instrument", body: "inter", label: "inter" } };
+export const INITIAL_STATE: ThemeState = { mode: "light" };
 
-// Never trust stored data: keep only known modes, known roles and well-formed #rrggbb values.
+// Never trust stored data: only a known mode from the current version counts.
 export function parseStored(raw: string | null): ThemeState {
   if (!raw) return INITIAL_STATE;
   try {
-    const data = JSON.parse(raw) as { mode?: unknown; overrides?: Record<string, Record<string, unknown>>; fonts?: Record<string, unknown>; version?: unknown };
-    const current = data.version === STORAGE_VERSION;
-    const state: ThemeState = {
-      // Before version 3 the mode was always saved (dark by default), so an old value is not a real choice: use the new light default.
-      mode: current && data.mode === "dark" ? "dark" : "light",
-      overrides: { dark: {}, light: {} },
-      fonts: { ...INITIAL_STATE.fonts },
-    };
-    // Fonts are always saved in full, so values from an older version are the old defaults, not choices: ignore them.
-    for (const { role } of FONT_ROLES) {
-      const value = current ? data.fonts?.[role] : undefined;
-      if (FONT_CHOICES.some((c) => c.id === value)) state.fonts[role] = value as FontChoice;
-    }
-    for (const mode of ["dark", "light"] as const) {
-      for (const { role } of COLOR_ROLES) {
-        const value = data.overrides?.[mode]?.[role];
-        if (typeof value === "string" && HEX.test(value)) state.overrides[mode][role] = value.toLowerCase();
-      }
-    }
-    return state;
+    const data = JSON.parse(raw) as { mode?: unknown; version?: unknown };
+    // Before version 3 the mode was always saved (dark by default), so an old value is not a real choice.
+    return { mode: data.version === STORAGE_VERSION && data.mode === "dark" ? "dark" : "light" };
   } catch {
     return INITIAL_STATE;
   }
 }
-
-export function hexToRgb(hex: string): [number, number, number] {
-  const n = parseInt(hex.slice(1), 16);
-  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
-}
-
-export const rgbLabel = (hex: string) => `rgb(${hexToRgb(hex).join(", ")})`;
 
 // ---- Store (module-level, read in React with useSyncExternalStore) ---------------------------
 
@@ -112,20 +43,7 @@ const listeners = new Set<() => void>();
 
 function apply(s: ThemeState) {
   if (typeof document === "undefined") return; // unit tests run without a DOM
-  const root = document.documentElement;
-  root.dataset.theme = s.mode;
-  for (const { role, cssVars } of COLOR_ROLES) {
-    const value = s.overrides[s.mode][role];
-    for (const cssVar of cssVars) {
-      if (value) root.style.setProperty(cssVar, value);
-      else root.style.removeProperty(cssVar); // fall back to the stylesheet default
-    }
-  }
-  for (const { role, cssVar, fallback } of FONT_ROLES) {
-    const choice = s.fonts[role];
-    if (choice === fallback) root.style.removeProperty(cssVar);
-    else root.style.setProperty(cssVar, FONT_CHOICES.find((c) => c.id === choice)!.stack);
-  }
+  document.documentElement.dataset.theme = s.mode;
 }
 
 function update(next: ThemeState) {
@@ -139,16 +57,7 @@ function update(next: ThemeState) {
   listeners.forEach((l) => l());
 }
 
-export const setMode = (mode: Mode) => update({ ...state, mode });
-
-export function setColor(role: ColorRole, hex: string) {
-  if (!HEX.test(hex)) return;
-  update({ ...state, overrides: { ...state.overrides, [state.mode]: { ...state.overrides[state.mode], [role]: hex.toLowerCase() } } });
-}
-
-export const setFont = (role: FontRole, choice: FontChoice) => update({ ...state, fonts: { ...state.fonts, [role]: choice } });
-
-export const resetColors = () => update({ ...state, overrides: { ...state.overrides, [state.mode]: {} } });
+export const setMode = (mode: Mode) => update({ mode });
 
 apply(state); // runs when the module is first imported (before React renders), so there is no flash
 
