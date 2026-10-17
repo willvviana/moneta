@@ -8,12 +8,13 @@ export type Mode = "dark" | "light";
 export type ColorRole = "title" | "nav" | "income" | "expense" | "label";
 
 // A role can drive several CSS variables (the labels colour also colours the totals rows).
-export const COLOR_ROLES: { role: ColorRole; label: string; cssVars: string[] }[] = [
-  { role: "title", label: "Titles and nav text", cssVars: ["--title"] },
-  { role: "nav", label: "Navigation and share of spending", cssVars: ["--nav"] },
-  { role: "income", label: "Income", cssVars: ["--income"] },
-  { role: "expense", label: "Expenses", cssVars: ["--expense"] },
-  { role: "label", label: "Labels, table headers and totals", cssVars: ["--label", "--label-strong"] },
+// Their labels are translated: account.colorRoles in i18n/messages.ts.
+export const COLOR_ROLES: { role: ColorRole; cssVars: string[] }[] = [
+  { role: "title", cssVars: ["--title"] },
+  { role: "nav", cssVars: ["--nav"] },
+  { role: "income", cssVars: ["--income"] },
+  { role: "expense", cssVars: ["--expense"] },
+  { role: "label", cssVars: ["--label", "--label-strong"] },
 ];
 
 // Must match the defaults in styles.css; they are only used to preselect the colour pickers.
@@ -39,11 +40,12 @@ export const FONT_CHOICES: { id: FontChoice; label: string; stack: string }[] = 
 ];
 
 // `fallback` is what styles.css uses when nothing is overridden (shown as "(Default)" in the menu).
-export const FONT_ROLES: { role: FontRole; label: string; cssVar: string; fallback: FontChoice }[] = [
-  { role: "display", label: "Title font", cssVar: "--font-display", fallback: "instrument" },
-  { role: "body", label: "Text font", cssVar: "--font-body", fallback: "inter" },
+// Their labels are translated: account.fontRoles in i18n/messages.ts.
+export const FONT_ROLES: { role: FontRole; cssVar: string; fallback: FontChoice }[] = [
+  { role: "display", cssVar: "--font-display", fallback: "instrument" },
+  { role: "body", cssVar: "--font-body", fallback: "inter" },
   // Small uppercase labels: page eyebrows, table headers and totals, card labels.
-  { role: "label", label: "Label and totals font", cssVar: "--font-mono", fallback: "inter" },
+  { role: "label", cssVar: "--font-mono", fallback: "inter" },
 ];
 
 // Overrides are kept per mode: a neon green that suits the dark theme would be unreadable on white.

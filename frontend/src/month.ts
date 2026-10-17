@@ -1,3 +1,6 @@
+import { MESSAGES } from "./i18n/messages";
+import type { Lang } from "./i18n/locale";
+
 // Months are "YYYY-MM" strings. The range sent to the API is half-open, matching the
 // backend: from = first day of the month (included), to = first day of NEXT month (excluded).
 
@@ -38,10 +41,11 @@ export function rangeCount(from: string, to: string): number {
 }
 
 // Returns a message when the range can't be requested, or null when it is fine.
-export function rangeProblem(from: string, to: string): string | null {
-  if (!isMonth(from) || !isMonth(to)) return "Choose a start and an end month.";
-  if (from > to) return "The start month must not be after the end month."; // "YYYY-MM" sorts chronologically
-  if (rangeCount(from, to) > MAX_REPORT_MONTHS) return `Choose at most ${MAX_REPORT_MONTHS} months.`;
+export function rangeProblem(from: string, to: string, lang: Lang): string | null {
+  const m = MESSAGES[lang].range;
+  if (!isMonth(from) || !isMonth(to)) return m.chooseBoth;
+  if (from > to) return m.startAfterEnd; // "YYYY-MM" sorts chronologically
+  if (rangeCount(from, to) > MAX_REPORT_MONTHS) return m.tooLong(MAX_REPORT_MONTHS);
   return null;
 }
 
@@ -62,7 +66,20 @@ export function presetRange(preset: Preset, current: string): { from: string; to
   }
 }
 
-export function monthLabel(ym: string): string {
+// Month names come from the browser's Intl data. Portuguese month names are lowercase
+// ("outubro de 2026"), which is right mid-sentence; headings use capitalize().
+function formatMonth(ym: string, lang: Lang, options: Intl.DateTimeFormatOptions): string {
   const [y, m] = ym.split("-").map(Number) as [number, number];
-  return new Date(y, m - 1, 1).toLocaleDateString("en-US", { month: "long", year: "numeric" });
+  return new Date(y, m - 1, 1).toLocaleDateString(lang, options); // local date: no UTC shift
 }
+
+// "October 2026" / "outubro de 2026"
+export const monthLabel = (ym: string, lang: Lang) => formatMonth(ym, lang, { month: "long", year: "numeric" });
+
+// "October" / "outubro"
+export const monthName = (ym: string, lang: Lang) => formatMonth(ym, lang, { month: "long" });
+
+// "Oct" / "out." (chart axis)
+export const shortMonth = (ym: string, lang: Lang) => formatMonth(ym, lang, { month: "short" });
+
+export const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);

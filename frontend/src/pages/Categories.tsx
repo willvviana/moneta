@@ -5,16 +5,19 @@ import { PageHeader } from "../components/PageHeader";
 import { SortableTh } from "../components/SortableTh";
 import { matchesName } from "../filters";
 import { DEFAULT_NAME_SORT, sortByName, type NameSortKey, type SortState } from "../sort";
+import { errorText } from "../i18n/errors";
+import { useI18n } from "../i18n/locale";
 import { createCategory, deleteCategory, listCategories, renameCategory, type Category } from "../transactions";
 
 type Notice = { kind: "ok" | "error"; text: string } | null;
 
-const messageOf = (err: unknown) => (err instanceof Error ? err.message : "Unknown error");
-
 export function Categories() {
+  const { lang, t } = useI18n();
+  const p = t.categories;
+  const messageOf = (err: unknown) => errorText(err, lang);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loadState, setLoadState] = useState<"loading" | "ready" | "error">("loading");
-  const [loadError, setLoadError] = useState("");
+  const [loadError, setLoadError] = useState<unknown>(null); // translated when shown
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
@@ -40,7 +43,7 @@ export function Categories() {
       setLoadState("ready");
     } catch (err) {
       if (requestId !== latest.current) return;
-      setLoadError(messageOf(err));
+      setLoadError(err);
       setLoadState("error");
     }
   }, []);
@@ -61,11 +64,11 @@ export function Categories() {
   async function submitAdd(e: FormEvent) {
     e.preventDefault();
     const name = newName.trim();
-    if (!name) return setAddError("Enter a name.");
-    if (name.length > 50) return setAddError("Names can be at most 50 characters.");
+    if (!name) return setAddError(p.enterName);
+    if (name.length > 50) return setAddError(p.tooLong);
     // Quick feedback only: the server is the authority (and refuses duplicates ignoring case).
     if (categories.some((o) => o.name.toLowerCase() === name.toLowerCase())) {
-      return setAddError("You already have a category with that name.");
+      return setAddError(p.duplicate);
     }
 
     setCreating(true);
@@ -74,7 +77,7 @@ export function Categories() {
       const created = await createCategory(name); // the SERVER assigns the id
       setAdding(false);
       setSearch(""); // make sure the new row isn't hidden by an active search
-      setNotice({ kind: "ok", text: `Added "${created.name}".` }); // only after the API confirmed
+      setNotice({ kind: "ok", text: p.added(created.name) }); // only after the API confirmed
       await load(false);
     } catch (err) {
       setAddError(messageOf(err)); // e.g. 409 duplicate created in another tab
@@ -94,12 +97,12 @@ export function Categories() {
   async function submit(e: FormEvent, c: Category) {
     e.preventDefault();
     const name = draft.trim();
-    if (!name) return setFormError("Enter a name.");
-    if (name.length > 50) return setFormError("Names can be at most 50 characters.");
+    if (!name) return setFormError(p.enterName);
+    if (name.length > 50) return setFormError(p.tooLong);
     if (name === c.name) return setEditingId(null); // nothing changed
     // Quick feedback only: the server is the authority (and also refuses duplicates ignoring case).
     if (categories.some((o) => o.id !== c.id && o.name.toLowerCase() === name.toLowerCase())) {
-      return setFormError("You already have a category with that name.");
+      return setFormError(p.duplicate);
     }
 
     setSaving(true);
@@ -107,7 +110,7 @@ export function Categories() {
     try {
       await renameCategory(c.id, name);
       setEditingId(null);
-      setNotice({ kind: "ok", text: `Renamed "${c.name}" to "${name}".` }); // only after the API confirmed
+      setNotice({ kind: "ok", text: p.renamed(c.name, name) }); // only after the API confirmed
       await load(false);
     } catch (err) {
       setFormError(messageOf(err)); // e.g. 409 duplicate, 404 if it no longer exists
@@ -121,17 +124,17 @@ export function Categories() {
     let refresh = true;
     try {
       await deleteCategory(c.id);
-      setNotice({ kind: "ok", text: `Deleted "${c.name}".` }); // only after the API confirmed (204)
+      setNotice({ kind: "ok", text: p.deleted(c.name) }); // only after the API confirmed (204)
     } catch (err) {
       if (err instanceof ApiError && err.status === 409) {
         // The database refuses while transactions or budgets still reference it.
         setNotice({
           kind: "error",
-          text: `Can't delete "${c.name}": it is still used by transactions or budgets. Move or remove those first.`,
+          text: p.inUse(c.name),
         });
         refresh = false; // nothing changed
       } else {
-        setNotice({ kind: "error", text: `Could not delete "${c.name}": ${messageOf(err)}` });
+        setNotice({ kind: "error", text: p.deleteFailed(c.name, messageOf(err)) });
         refresh = err instanceof ApiError && err.status === 404; // already gone: refresh the list
       }
     }
@@ -149,7 +152,7 @@ export function Categories() {
 
   return (
     <main className="page">
-      <PageHeader eyebrow="Structure" title="Categories" />
+      <PageHeader eyebrow={p.eyebrow} title={p.title} />
 
       {notice && (
         <p role={notice.kind === "error" ? "alert" : "status"} className={notice.kind === "error" ? "error" : "notice"}>
@@ -160,24 +163,24 @@ export function Categories() {
       {loadState === "ready" && !adding && (
         <div className="month-bar">
           <span className="spacer" />
-          <button onClick={startAdd}>Add category</button>
+          <button onClick={startAdd}>{p.add}</button>
         </div>
       )}
       {adding && (
-        <form className="inline add-form" onSubmit={(e) => void submitAdd(e)} aria-label="Add category">
+        <form className="inline add-form" onSubmit={(e) => void submitAdd(e)} aria-label={p.add}>
           <input
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
             maxLength={50}
             autoFocus
-            placeholder="Category name"
-            aria-label="New category name"
+            placeholder={p.namePlaceholder}
+            aria-label={p.newNameAria}
           />
           <button type="submit" disabled={creating}>
-            {creating ? "Adding…" : "Add"}
+            {creating ? p.adding : p.addButton}
           </button>
           <button type="button" className="secondary" disabled={creating} onClick={() => setAdding(false)}>
-            Cancel
+            {t.common.cancel}
           </button>
         </form>
       )}
@@ -187,43 +190,43 @@ export function Categories() {
         </p>
       )}
 
-      {loadState === "loading" && <p className="status">Loading…</p>}
+      {loadState === "loading" && <p className="status">{t.common.loading}</p>}
       {loadState === "error" && (
         <div className="status">
-          <p className="error">Couldn't load categories: {loadError}</p>
-          <button onClick={() => void load(true)}>Retry</button>
+          <p className="error">{p.loadFailed(messageOf(loadError))}</p>
+          <button onClick={() => void load(true)}>{t.common.retry}</button>
         </div>
       )}
       {loadState === "ready" && categories.length === 0 && (
         <p className="status">
-          No categories yet. Add one above, or create one when you <Link to="/transactions">add a transaction</Link>.
+          {p.emptyBefore}
+          <Link to="/transactions">{p.emptyLink}</Link>
+          {p.emptyAfter}
         </p>
       )}
       {loadState === "ready" && categories.length > 0 && (
         <>
-          <div className="filters" role="search" aria-label="Filter categories">
+          <div className="filters" role="search" aria-label={p.filterAria}>
             <label className="inline-label grow">
-              Search name
-              <input type="search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="e.g. supermarket" />
+              {p.searchName}
+              <input type="search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder={p.searchPlaceholder} />
             </label>
             {searching && (
               <button type="button" className="secondary" onClick={() => setSearch("")}>
-                Clear filters
+                {t.common.clearFilters}
               </button>
             )}
           </div>
           {searching && (
-            <p className="muted note">
-              Showing {visible.length} of {categories.length} categories.
-            </p>
+            <p className="muted note">{p.showing(visible.length, categories.length)}</p>
           )}
         </>
       )}
       {loadState === "ready" && categories.length > 0 && visible.length === 0 && (
         <p className="status">
-          No categories match "{search.trim()}".{" "}
+          {p.noMatch(search.trim())}{" "}
           <button className="secondary" onClick={() => setSearch("")}>
-            Clear filters
+            {t.common.clearFilters}
           </button>
         </p>
       )}
@@ -231,7 +234,7 @@ export function Categories() {
         <table>
           <thead>
             <tr>
-              <SortableTh label="Name" column="name" sort={sort} firstDir="asc" onSort={setSort} />
+              <SortableTh label={p.name} column="name" sort={sort} firstDir="asc" onSort={setSort} />
               <th />
             </tr>
           </thead>
@@ -246,13 +249,13 @@ export function Categories() {
                         onChange={(e) => setDraft(e.target.value)}
                         maxLength={50}
                         autoFocus
-                        aria-label={`New name for ${c.name}`}
+                        aria-label={p.renameAria(c.name)}
                       />
                       <button type="submit" disabled={saving}>
-                        {saving ? "Saving…" : "Save"}
+                        {saving ? t.common.saving : t.common.save}
                       </button>
                       <button type="button" className="secondary" disabled={saving} onClick={() => setEditingId(null)}>
-                        Cancel
+                        {t.common.cancel}
                       </button>
                     </form>
                     {formError && (
@@ -267,18 +270,18 @@ export function Categories() {
                     <td className="actions">
                       {confirmingId === c.id ? (
                         <>
-                          <span>Delete?</span>
+                          <span>{t.common.deleteConfirm}</span>
                           <button className="danger" disabled={busyId === c.id} onClick={() => void confirmDelete(c)}>
-                            {busyId === c.id ? "Deleting…" : "Yes"}
+                            {busyId === c.id ? t.common.deleting : t.common.yes}
                           </button>
                           <button className="secondary" disabled={busyId === c.id} onClick={() => setConfirmingId(null)}>
-                            No
+                            {t.common.no}
                           </button>
                         </>
                       ) : (
                         <>
                           <button className="secondary" onClick={() => startEdit(c)}>
-                            Rename
+                            {p.rename}
                           </button>
                           <button
                             className="secondary"
@@ -287,7 +290,7 @@ export function Categories() {
                               setNotice(null);
                             }}
                           >
-                            Delete
+                            {t.common.delete}
                           </button>
                         </>
                       )}

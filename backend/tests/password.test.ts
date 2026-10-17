@@ -56,6 +56,7 @@ describe("POST /api/auth/change-password", () => {
     const res = await change({ email, currentPassword: newPassword(), newPassword: newPassword() });
     expect(res.status).toBe(401);
     expect(res.body.error).toBe("Invalid email or current password");
+    expect(res.body.code).toBe("INVALID_CURRENT_PASSWORD"); // the client translates by code
     expect((await request(app).post("/api/auth/login").send({ email, password })).status).toBe(200); // still valid
   });
 
@@ -63,6 +64,7 @@ describe("POST /api/auth/change-password", () => {
     const res = await change({ email: `nobody-${randomUUID()}@example.test`, currentPassword: newPassword(), newPassword: newPassword() });
     expect(res.status).toBe(401);
     expect(res.body.error).toBe("Invalid email or current password");
+    expect(res.body.code).toBe("INVALID_CURRENT_PASSWORD"); // the client translates by code
   });
 
   it("rejects a new password equal to the current one", async () => {

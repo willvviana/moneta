@@ -42,7 +42,7 @@ export async function register(email: string, password: string) {
   } catch (err) {
     // 23505 = unique_violation (the lower(email) unique index).
     if ((err as { code?: string }).code === "23505") {
-      throw new AppError(409, "Could not register with these details");
+      throw new AppError(409, "REGISTRATION_FAILED", "Could not register with these details");
     }
     throw err;
   }
@@ -52,7 +52,7 @@ export async function register(email: string, password: string) {
 export async function login(email: string, password: string) {
   const found = await findUserByEmail(email);
   const ok = await verifyPassword(found, password);
-  if (!found || !ok) throw new AppError(401, "Invalid email or password"); // same message for both
+  if (!found || !ok) throw new AppError(401, "INVALID_CREDENTIALS", "Invalid email or password"); // same message for both
   return startSession({ id: found.id, email: found.email });
 }
 
@@ -61,8 +61,8 @@ export async function login(email: string, password: string) {
 export async function changePassword(email: string, currentPassword: string, newPassword: string): Promise<void> {
   const found = await findUserByEmail(email);
   const ok = await verifyPassword(found, currentPassword);
-  if (!found || !ok) throw new AppError(401, "Invalid email or current password");
-  if (newPassword === currentPassword) throw new AppError(400, "The new password must be different from the current one");
+  if (!found || !ok) throw new AppError(401, "INVALID_CURRENT_PASSWORD", "Invalid email or current password");
+  if (newPassword === currentPassword) throw new AppError(400, "PASSWORD_UNCHANGED", "The new password must be different from the current one");
 
   const passwordHash = await hashPassword(newPassword);
   // All sessions end: anyone holding an old session (or the old password) is locked out.

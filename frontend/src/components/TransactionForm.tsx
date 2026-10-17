@@ -1,4 +1,7 @@
 import { useState, type FormEvent } from "react";
+import { ApiError } from "../api";
+import { errorText } from "../i18n/errors";
+import { useI18n } from "../i18n/locale";
 import { centsToInput, parseDollarsToCents } from "../money";
 import { type Category, type Transaction, type TransactionInput } from "../transactions";
 import { CategorySelect } from "./CategorySelect";
@@ -14,8 +17,10 @@ interface Props {
 
 // Client-side validation is for fast feedback only. The server re-validates everything.
 export function TransactionForm({ categories, initial, defaultDate, onSubmit, onCancel, onCategoryCreated }: Props) {
+  const { lang, t } = useI18n();
+  const f = t.txForm;
   const [type, setType] = useState<"income" | "expense">(initial?.type ?? "expense");
-  const [amount, setAmount] = useState(initial ? centsToInput(initial.amountCents) : "");
+  const [amount, setAmount] = useState(initial ? centsToInput(initial.amountCents, lang) : "");
   const [date, setDate] = useState(initial?.date ?? defaultDate);
   const [categoryId, setCategoryId] = useState(initial?.categoryId ?? categories[0]?.id ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
@@ -27,16 +32,16 @@ export function TransactionForm({ categories, initial, defaultDate, onSubmit, on
     setError(null);
 
     const amountCents = parseDollarsToCents(amount);
-    if (amountCents === null) return setError("Enter an amount greater than 0 with at most 2 decimals, like 12.34 or 12,34 (no thousands separators).");
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return setError("Choose a date.");
-    if (!categoryId) return setError("Choose a category, or create one first.");
-    if (description.length > 500) return setError("Description must be 500 characters or fewer.");
+    if (amountCents === null) return setError(f.amountInvalid);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return setError(f.chooseDate);
+    if (!categoryId) return setError(t.common.chooseCategory);
+    if (description.length > 500) return setError(f.descriptionTooLong);
 
     setSubmitting(true);
     try {
       await onSubmit({ type, amountCents, date, categoryId, description: description.trim() });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not save the transaction.");
+      setError(err instanceof ApiError ? errorText(err, lang) : f.saveFailed);
     } finally {
       setSubmitting(false);
     }
@@ -44,21 +49,21 @@ export function TransactionForm({ categories, initial, defaultDate, onSubmit, on
 
   return (
     <form className="tx-form" onSubmit={handleSubmit}>
-      <h2>{initial ? "Edit transaction" : "Add transaction"}</h2>
+      <h2>{initial ? f.editTitle : f.addTitle}</h2>
       <div className="grid-2">
         <label>
-          Type
+          {t.common.type}
           <select value={type} onChange={(e) => setType(e.target.value as "income" | "expense")}>
-            <option value="expense">Expense</option>
-            <option value="income">Income</option>
+            <option value="expense">{t.common.expenseType}</option>
+            <option value="income">{t.common.incomeType}</option>
           </select>
         </label>
         <label>
-          Amount (USD)
-          <input value={amount} onChange={(e) => setAmount(e.target.value)} inputMode="decimal" placeholder="12.34" required />
+          {f.amount}
+          <input value={amount} onChange={(e) => setAmount(e.target.value)} inputMode="decimal" placeholder={f.amountPlaceholder} required />
         </label>
         <label>
-          Date
+          {f.date}
           <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
         </label>
       </div>
@@ -70,7 +75,7 @@ export function TransactionForm({ categories, initial, defaultDate, onSubmit, on
         onError={setError}
       />
       <label>
-        Description (optional)
+        {f.description}
         <input value={description} onChange={(e) => setDescription(e.target.value)} maxLength={500} />
       </label>
       {error && (
@@ -80,10 +85,10 @@ export function TransactionForm({ categories, initial, defaultDate, onSubmit, on
       )}
       <div className="inline">
         <button type="submit" disabled={submitting}>
-          {submitting ? "Saving…" : "Save"}
+          {submitting ? t.common.saving : t.common.save}
         </button>
         <button type="button" className="secondary" onClick={onCancel} disabled={submitting}>
-          Cancel
+          {t.common.cancel}
         </button>
       </div>
     </form>

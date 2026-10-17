@@ -70,7 +70,7 @@ describe("formatCents", () => {
     [123456789, "$1,234,567.89"], // thousands separators on the dollars only
     [99999999999999, "$999,999,999,999.99"],
   ])("formats %d cents as %s", (cents, text) => {
-    expect(formatCents(cents)).toBe(text);
+    expect(formatCents(cents, "en-US")).toBe(text);
   });
 });
 
@@ -82,7 +82,7 @@ describe("formatSignedCents", () => {
     [-1, "−$0.01"],
     [0, "$0.00"], // zero carries no sign
   ])("%d cents reads %j", (cents, text) => {
-    expect(formatSignedCents(cents)).toBe(text);
+    expect(formatSignedCents(cents, "en-US")).toBe(text);
   });
 });
 
@@ -125,7 +125,7 @@ describe("describeRemaining", () => {
     [-12000, "Over by $120.00"],
     [-1, "Over by $0.01"],
   ])("%d cents remaining reads %j", (remaining, text) => {
-    expect(describeRemaining(remaining)).toBe(text);
+    expect(describeRemaining(remaining, "en-US")).toBe(text);
   });
 });
 
@@ -136,31 +136,31 @@ describe("centsToInput", () => {
     [100000, "1000.00"], // no thousands separator: the result must be parseable again
     [1234, "12.34"],
   ])("converts %d cents to %s", (cents, text) => {
-    expect(centsToInput(cents)).toBe(text);
+    expect(centsToInput(cents, "en-US")).toBe(text);
   });
 
   it("round-trips: parsing what an edit form shows gives back the same cents", () => {
     for (const cents of [1, 9, 10, 99, 100, 101, 1234, 100000, 99999999999999]) {
-      expect(parseDollarsToCents(centsToInput(cents))).toBe(cents);
+      expect(parseDollarsToCents(centsToInput(cents, "en-US"))).toBe(cents);
     }
   });
 });
 
 describe("formatCentsShort", () => {
   it("rounds half up to whole dollars", () => {
-    expect(formatCentsShort(514000)).toBe("$5,140");
-    expect(formatCentsShort(514049)).toBe("$5,140");
-    expect(formatCentsShort(514050)).toBe("$5,141");
-    expect(formatCentsShort(0)).toBe("$0");
+    expect(formatCentsShort(514000, "en-US")).toBe("$5,140");
+    expect(formatCentsShort(514049, "en-US")).toBe("$5,140");
+    expect(formatCentsShort(514050, "en-US")).toBe("$5,141");
+    expect(formatCentsShort(0, "en-US")).toBe("$0");
   });
 
   it("switches to thousands from $100,000", () => {
-    expect(formatCentsShort(9_999_949)).toBe("$99,999");
-    expect(formatCentsShort(12_345_678)).toBe("$123k");
-    expect(formatCentsShort(12_350_000)).toBe("$124k");
+    expect(formatCentsShort(9_999_949, "en-US")).toBe("$99,999");
+    expect(formatCentsShort(12_345_678, "en-US")).toBe("$123k");
+    expect(formatCentsShort(12_350_000, "en-US")).toBe("$124k");
   });
 
   it("keeps the sign for negatives", () => {
-    expect(formatCentsShort(-514050)).toBe("−$5,141");
+    expect(formatCentsShort(-514050, "en-US")).toBe("−$5,141");
   });
 });

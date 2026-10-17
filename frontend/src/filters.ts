@@ -2,6 +2,8 @@
 // browser on rows already loaded from the API; the server's numbers are never recomputed here.
 
 import type { Budget } from "./budgets";
+import { MESSAGES } from "./i18n/messages";
+import type { Lang } from "./i18n/locale";
 import { parseDollarsToCents } from "./money";
 import type { Transaction } from "./transactions";
 
@@ -25,13 +27,20 @@ export function parseAmountFilter(text: string): { cents: number | null; valid: 
   return cents === null ? { cents: null, valid: false } : { cents, valid: true };
 }
 
-// A message when the amount filters can't be applied, otherwise null.
-export function amountRangeProblem(min: string, max: string): string | null {
+// Why the amount filters can't be applied, or null when they can.
+function amountRangeIssue(min: string, max: string): "invalid" | "minAboveMax" | null {
   const lo = parseAmountFilter(min);
   const hi = parseAmountFilter(max);
-  if (!lo.valid || !hi.valid) return "Enter amounts greater than 0, like 12.34 or 12,34.";
-  if (lo.cents !== null && hi.cents !== null && lo.cents > hi.cents) return "The minimum can't be higher than the maximum.";
+  if (!lo.valid || !hi.valid) return "invalid";
+  if (lo.cents !== null && hi.cents !== null && lo.cents > hi.cents) return "minAboveMax";
   return null;
+}
+
+// A message when the amount filters can't be applied, otherwise null.
+export function amountRangeProblem(min: string, max: string, lang: Lang): string | null {
+  const issue = amountRangeIssue(min, max);
+  const m = MESSAGES[lang].txFilters;
+  return issue === "invalid" ? m.amountInvalid : issue === "minAboveMax" ? m.minAboveMax : null;
 }
 
 export function hasActiveTxFilters(f: TxFilters): boolean {
@@ -42,7 +51,7 @@ export function filterTransactions(txs: Transaction[], f: TxFilters): Transactio
   const text = f.text.trim().toLowerCase();
   // If the amount filters are invalid or inverted the UI shows the error and the amount filter is
   // ignored, so a typo doesn't silently empty the table.
-  const amountsOk = amountRangeProblem(f.min, f.max) === null;
+  const amountsOk = amountRangeIssue(f.min, f.max) === null;
   const min = amountsOk ? parseAmountFilter(f.min).cents : null;
   const max = amountsOk ? parseAmountFilter(f.max).cents : null;
 

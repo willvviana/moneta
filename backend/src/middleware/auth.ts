@@ -19,7 +19,7 @@ declare global {
 export async function requireAuth(req: Request, _res: Response, next: NextFunction) {
   const token = req.cookies?.[SESSION_COOKIE];
   const user = typeof token === "string" ? await userFromSessionToken(token) : undefined;
-  if (!user) throw new AppError(401, "Not authenticated");
+  if (!user) throw new AppError(401, "NOT_AUTHENTICATED", "Not authenticated");
   req.user = user;
   next();
 }
@@ -31,7 +31,7 @@ export function checkOrigin(allowedOrigin: string) {
   return (req: Request, _res: Response, next: NextFunction) => {
     const safe = req.method === "GET" || req.method === "HEAD" || req.method === "OPTIONS";
     const origin = req.get("origin");
-    if (!safe && origin && origin !== allowedOrigin) throw new AppError(403, "Forbidden origin");
+    if (!safe && origin && origin !== allowedOrigin) throw new AppError(403, "FORBIDDEN_ORIGIN", "Forbidden origin");
     next();
   };
 }

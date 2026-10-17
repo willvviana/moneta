@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../auth";
+import { useI18n } from "../i18n/locale";
 import { AccountMenu } from "./AccountMenu";
 import { Brand } from "./Brand";
 import { Footer } from "./Footer";
@@ -10,6 +11,7 @@ import { NAV_LINKS } from "./navLinks";
 // On small screens the navigation folds behind a Menu button.
 export function Layout() {
   const { state, logout } = useAuth();
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const { pathname } = useLocation();
 
@@ -21,7 +23,7 @@ export function Layout() {
     <>
       <header className="site-header">
         <div className="site-header-inner">
-          <Link to="/" className="brand-link" aria-label="Moneta, overview">
+          <Link to="/" className="brand-link" aria-label={t.nav.homeAria}>
             <Brand />
           </Link>
           <button
@@ -30,12 +32,12 @@ export function Layout() {
             aria-controls="site-nav"
             onClick={() => setOpen((o) => !o)}
           >
-            {open ? "Close" : "Menu"}
+            {open ? t.nav.close : t.nav.menu}
           </button>
-          <nav id="site-nav" className={open ? "site-nav open" : "site-nav"} aria-label="Main">
+          <nav id="site-nav" className={open ? "site-nav open" : "site-nav"} aria-label={t.nav.mainAria}>
             {NAV_LINKS.map((l) => (
               <NavLink key={l.to} to={l.to} end={l.end} className={({ isActive }) => (isActive ? "active" : undefined)}>
-                {l.label}
+                {t.nav[l.key]}
               </NavLink>
             ))}
             <AccountMenu email={email} onLogout={() => void logout()} />

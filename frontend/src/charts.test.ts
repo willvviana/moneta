@@ -2,17 +2,18 @@ import { describe, expect, it } from "vitest";
 import { buildSlices, CATEGORY_SLOTS, donutArcs, netBars } from "./charts";
 import type { CategorySpending } from "./reports";
 
+const other = (n: number) => `Other (${n})`;
 const cat = (id: string, cents: number): CategorySpending => ({ categoryId: id, categoryName: id.toUpperCase(), spentCents: cents });
 
 describe("buildSlices", () => {
   it("drops zero spending and sorts largest first", () => {
-    const slices = buildSlices([cat("a", 100), cat("b", 0), cat("c", 300)]);
+    const slices = buildSlices([cat("a", 100), cat("b", 0), cat("c", 300)], other);
     expect(slices.map((s) => s.key)).toEqual(["c", "a"]);
   });
 
   it("folds the smallest categories into Other and keeps the total exact", () => {
     const input = [1, 2, 3, 4, 5, 6, 7, 8].map((n) => cat(`c${n}`, n * 1001));
-    const slices = buildSlices(input);
+    const slices = buildSlices(input, other);
     expect(slices).toHaveLength(CATEGORY_SLOTS);
     expect(slices.at(-1)).toMatchObject({ key: "other", name: "Other (3)", cents: (1 + 2 + 3) * 1001, color: "var(--cat-other)" });
     const sum = (xs: { cents?: number; spentCents?: number }[]) => xs.reduce((t, x) => t + (x.cents ?? x.spentCents ?? 0), 0);
@@ -20,15 +21,15 @@ describe("buildSlices", () => {
   });
 
   it("gives every named slice a distinct colour, and the same category the same colour regardless of rank", () => {
-    const a = buildSlices([cat("food", 500), cat("rent", 900), cat("fun", 100)]);
+    const a = buildSlices([cat("food", 500), cat("rent", 900), cat("fun", 100)], other);
     expect(new Set(a.map((s) => s.color)).size).toBe(3);
-    const b = buildSlices([cat("food", 999), cat("rent", 1)]);
+    const b = buildSlices([cat("food", 999), cat("rent", 1)], other);
     const color = (xs: typeof a, key: string) => xs.find((s) => s.key === key)!.color;
     expect(color(b, "food")).toBe(color(a, "food"));
   });
 
   it("handles no spending", () => {
-    expect(buildSlices([])).toEqual([]);
+    expect(buildSlices([], other)).toEqual([]);
   });
 });
 

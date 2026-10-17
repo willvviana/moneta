@@ -18,7 +18,7 @@ export const idString = z.string().regex(/^\d{1,15}$/, "invalid id");
 
 // Path ids: anything malformed is simply "not found" (404), not a validation detail.
 export function parseId(raw: unknown): string {
-  if (typeof raw !== "string" || !/^\d{1,15}$/.test(raw)) throw new AppError(404, "Not found");
+  if (typeof raw !== "string" || !/^\d{1,15}$/.test(raw)) throw new AppError(404, "NOT_FOUND", "Not found");
   return raw;
 }
 
@@ -26,7 +26,7 @@ export function parseInput<T extends z.ZodTypeAny>(schema: T, data: unknown): z.
   const result = schema.safeParse(data);
   if (!result.success) {
     const msg = result.error.issues.map((i) => `${i.path.join(".") || "input"}: ${i.message}`).join("; ");
-    throw new AppError(400, msg);
+    throw new AppError(400, "VALIDATION", msg);
   }
   return result.data;
 }

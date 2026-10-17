@@ -359,6 +359,9 @@ button.danger:hover:not(:disabled) { background: color-mix(in srgb, var(--danger
 .card { width: 100%; max-width: 420px; margin: 12vh auto 4rem; padding: 2.4rem 2.2rem; }
 .card h1 { font-size: 2.6rem; margin: 1.6rem 0 1.4rem; }
 .card .brand { margin-bottom: 0.2rem; }
+/* Signed-out pages: the logo on the left, the language picker on the right. */
+.auth-top { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.auth-top .auth-lang { flex: 0 1 auto; }
 
 /* Dashboard stat cards */
 .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
