@@ -96,12 +96,12 @@ describe("amount filter parsing", () => {
   });
 
   it("amountRangeProblem explains what is wrong, or returns null", () => {
-    expect(amountRangeProblem("", "")).toBeNull();
-    expect(amountRangeProblem("10", "")).toBeNull();
-    expect(amountRangeProblem("", "20")).toBeNull();
-    expect(amountRangeProblem("10", "10")).toBeNull();
-    expect(amountRangeProblem("abc", "")).toContain("greater than 0");
-    expect(amountRangeProblem("20", "10")).toContain("minimum can't be higher");
+    expect(amountRangeProblem("", "", "en-US")).toBeNull();
+    expect(amountRangeProblem("10", "", "en-US")).toBeNull();
+    expect(amountRangeProblem("", "20", "en-US")).toBeNull();
+    expect(amountRangeProblem("10", "10", "en-US")).toBeNull();
+    expect(amountRangeProblem("abc", "", "en-US")).toContain("greater than 0");
+    expect(amountRangeProblem("20", "10", "en-US")).toContain("minimum can't be higher");
   });
 });
 

@@ -1,4 +1,7 @@
 import { useState, type KeyboardEvent } from "react";
+import { ApiError } from "../api";
+import { errorText } from "../i18n/errors";
+import { useI18n } from "../i18n/locale";
 import { createCategory, type Category } from "../transactions";
 
 interface Props {
@@ -12,6 +15,7 @@ interface Props {
 
 // A category dropdown plus an inline "new category" box. Used by the transaction and budget forms.
 export function CategorySelect({ categories, value, onChange, onCategoryCreated, onError, disabled }: Props) {
+  const { lang, t } = useI18n();
   const [newCategory, setNewCategory] = useState("");
 
   async function addCategory() {
@@ -32,7 +36,7 @@ export function CategorySelect({ categories, value, onChange, onCategoryCreated,
       onChange(created.id);
       setNewCategory("");
     } catch (err) {
-      onError(err instanceof Error ? err.message : "Could not create the category.");
+      onError(err instanceof ApiError ? errorText(err, lang) : t.categorySelect.createFailed);
     }
   }
 
@@ -47,9 +51,9 @@ export function CategorySelect({ categories, value, onChange, onCategoryCreated,
   return (
     <>
       <label>
-        Category
+        {t.common.category}
         <select value={value} onChange={(e) => onChange(e.target.value)} disabled={disabled}>
-          {categories.length === 0 && <option value="">No categories yet</option>}
+          {categories.length === 0 && <option value="">{t.categorySelect.none}</option>}
           {categories.map((c) => (
             <option key={c.id} value={c.id}>
               {c.name}
@@ -63,12 +67,12 @@ export function CategorySelect({ categories, value, onChange, onCategoryCreated,
             value={newCategory}
             onChange={(e) => setNewCategory(e.target.value)}
             onKeyDown={onKey}
-            placeholder="New category name"
+            placeholder={t.categorySelect.newPlaceholder}
             maxLength={50}
-            aria-label="New category name"
+            aria-label={t.categorySelect.newPlaceholder}
           />
           <button type="button" className="secondary" onClick={() => void addCategory()}>
-            Add category
+            {t.categorySelect.add}
           </button>
         </div>
       )}

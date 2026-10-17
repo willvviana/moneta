@@ -38,7 +38,36 @@ describe("POST /api/auth/register rate limit", () => {
       return request(app).post("/api/auth/register").send({ email, password: randomBytes(18).toString("base64url") });
     };
     for (let i = 0; i < 10; i++) expect((await attempt()).status).toBe(201);
-    expect((await attempt()).status).toBe(429);
+    const limited = await attempt();
+    expect(limited.status).toBe(429);
+    // Same { error, code } shape as every other API error, so the client can translate it.
+    expect(limited.body).toEqual({ error: "Too many attempts. Try again later.", code: "RATE_LIMITED" });
+  });
+});
+
+describe("error responses carry a machine-readable code", () => {
+  it("unknown API path", async () => {
+    const res = await request(app).get("/api/does-not-exist");
+    expect(res.status).toBe(404);
+    expect(res.body).toEqual({ error: "Not found", code: "NOT_FOUND" });
+  });
+
+  it("not authenticated", async () => {
+    const res = await request(app).get("/api/transactions?from=2026-01-01&to=2026-02-01");
+    expect(res.status).toBe(401);
+    expect(res.body.code).toBe("NOT_AUTHENTICATED");
+  });
+
+  it("malformed JSON body", async () => {
+    const res = await request(app).post("/api/auth/login").set("Content-Type", "application/json").send("{bad json");
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({ error: "Invalid request body", code: "INVALID_BODY" });
+  });
+
+  it("invalid login format", async () => {
+    const res = await request(app).post("/api/auth/login").send({ email: "not-an-email", password: "" });
+    expect(res.status).toBe(400);
+    expect(res.body.code).toBe("INVALID_CREDENTIALS_FORMAT");
   });
 });
 

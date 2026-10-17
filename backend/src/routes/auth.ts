@@ -20,7 +20,7 @@ const credentials = z.object({
 
 function parse(body: unknown) {
   const result = credentials.safeParse(body);
-  if (!result.success) throw new AppError(400, `Invalid email or password format (password needs ${MIN_PASSWORD_LENGTH}+ characters)`);
+  if (!result.success) throw new AppError(400, "INVALID_CREDENTIALS_FORMAT", `Invalid email or password format (password needs ${MIN_PASSWORD_LENGTH}+ characters)`);
   return result.data;
 }
 
@@ -44,7 +44,15 @@ function setSessionCookie(res: Response, token: string) {
 }
 
 // Brute-force protection: 10 attempts / 15 min / IP. Each limiter has its own counter.
-const makeAuthLimiter = (limit = 10) => rateLimit({ windowMs: 15 * 60 * 1000, limit, standardHeaders: true, legacyHeaders: false });
+// The 429 body has the same { error, code } shape as every other API error.
+const makeAuthLimiter = (limit = 10) =>
+  rateLimit({
+    windowMs: 15 * 60 * 1000,
+    limit,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: "Too many attempts. Try again later.", code: "RATE_LIMITED" },
+  });
 const loginLimiter = makeAuthLimiter();
 const changePasswordLimiter = makeAuthLimiter(); // also lets an attacker test password guesses
 // Stops one IP from mass-creating accounts (each one costs an argon2 hash). The limit is configurable
@@ -69,7 +77,7 @@ authRouter.post("/login", loginLimiter, async (req, res) => {
 
 authRouter.post("/change-password", changePasswordLimiter, async (req, res) => {
   const parsed = passwordChange.safeParse(req.body);
-  if (!parsed.success) throw new AppError(400, `Enter your email, your current password and a new password of ${MIN_PASSWORD_LENGTH}+ characters`);
+  if (!parsed.success) throw new AppError(400, "INVALID_PASSWORD_CHANGE_FORMAT", `Enter your email, your current password and a new password of ${MIN_PASSWORD_LENGTH}+ characters`);
   await changePassword(parsed.data.email, parsed.data.currentPassword, parsed.data.newPassword);
   res.clearCookie(SESSION_COOKIE, { path: "/" }); // this browser's session was just revoked too
   res.status(204).end();

@@ -62,8 +62,8 @@ describe("isMonth", () => {
 
 describe("monthLabel", () => {
   it("formats a readable month and year", () => {
-    expect(monthLabel("2026-10")).toBe("October 2026");
-    expect(monthLabel("2027-01")).toBe("January 2027");
+    expect(monthLabel("2026-10", "en-US")).toBe("October 2026");
+    expect(monthLabel("2027-01", "en-US")).toBe("January 2027");
   });
 });
 
@@ -77,8 +77,8 @@ describe("report ranges (inclusive months)", () => {
   ])("rangeCount(%s, %s) = %d", (from, to, n) => expect(rangeCount(from, to)).toBe(n));
 
   it("accepts valid ranges: one month, and exactly 60 months", () => {
-    expect(rangeProblem("2026-05", "2026-05")).toBeNull();
-    expect(rangeProblem("2021-01", "2025-12")).toBeNull();
+    expect(rangeProblem("2026-05", "2026-05", "en-US")).toBeNull();
+    expect(rangeProblem("2021-01", "2025-12", "en-US")).toBeNull();
   });
 
   it.each([
@@ -87,7 +87,7 @@ describe("report ranges (inclusive months)", () => {
     ["", "2026-01", "Choose a start and an end month"],
     ["2026-01", "2026-13", "Choose a start and an end month"],
   ])("rangeProblem(%j, %j) explains the problem", (from, to, fragment) => {
-    expect(rangeProblem(from, to)).toContain(fragment);
+    expect(rangeProblem(from, to, "en-US")).toContain(fragment);
   });
 
   it.each([
@@ -104,7 +104,7 @@ describe("report ranges (inclusive months)", () => {
   it("every preset is a valid range within the cap", () => {
     for (const p of ["last3", "last6", "last12", "ytd"] as const) {
       const { from, to } = presetRange(p, "2026-10");
-      expect(rangeProblem(from, to)).toBeNull();
+      expect(rangeProblem(from, to, "en-US")).toBeNull();
     }
   });
 });

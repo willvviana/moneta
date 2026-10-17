@@ -1,4 +1,5 @@
 import type { TxFilters } from "../filters";
+import { useI18n } from "../i18n/locale";
 import type { Category } from "../transactions";
 
 interface Props {
@@ -12,23 +13,25 @@ interface Props {
 
 // Filter controls for the transactions table. All state lives in the page; this only renders.
 export function TransactionFilters({ filters, onChange, categories, problem, active, onClear }: Props) {
+  const { t } = useI18n();
+  const f = t.txFilters;
   const set = (patch: Partial<TxFilters>) => onChange({ ...filters, ...patch });
 
   return (
     <>
-      <div className="filters" role="search" aria-label="Filter transactions">
+      <div className="filters" role="search" aria-label={f.aria}>
         <label className="inline-label">
-          Type
+          {t.common.type}
           <select value={filters.type} onChange={(e) => set({ type: e.target.value as TxFilters["type"] })}>
-            <option value="all">All</option>
-            <option value="income">Income</option>
-            <option value="expense">Expense</option>
+            <option value="all">{f.all}</option>
+            <option value="income">{t.common.incomeType}</option>
+            <option value="expense">{t.common.expenseType}</option>
           </select>
         </label>
         <label className="inline-label">
-          Category
+          {t.common.category}
           <select value={filters.categoryId} onChange={(e) => set({ categoryId: e.target.value })}>
-            <option value="">All categories</option>
+            <option value="">{f.allCategories}</option>
             {categories.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
@@ -37,20 +40,20 @@ export function TransactionFilters({ filters, onChange, categories, problem, act
           </select>
         </label>
         <label className="inline-label grow">
-          Search description
-          <input type="search" value={filters.text} onChange={(e) => set({ text: e.target.value })} placeholder="e.g. supermarket" />
+          {f.search}
+          <input type="search" value={filters.text} onChange={(e) => set({ text: e.target.value })} placeholder={f.searchPlaceholder} />
         </label>
         <label className="inline-label narrow">
-          Min amount
-          <input value={filters.min} onChange={(e) => set({ min: e.target.value })} inputMode="decimal" placeholder="0.00" />
+          {f.min}
+          <input value={filters.min} onChange={(e) => set({ min: e.target.value })} inputMode="decimal" placeholder={f.amountPlaceholder} />
         </label>
         <label className="inline-label narrow">
-          Max amount
-          <input value={filters.max} onChange={(e) => set({ max: e.target.value })} inputMode="decimal" placeholder="0.00" />
+          {f.max}
+          <input value={filters.max} onChange={(e) => set({ max: e.target.value })} inputMode="decimal" placeholder={f.amountPlaceholder} />
         </label>
         {active && (
           <button type="button" className="secondary" onClick={onClear}>
-            Clear filters
+            {t.common.clearFilters}
           </button>
         )}
       </div>

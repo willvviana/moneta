@@ -30,12 +30,12 @@ export async function set(userId: string, categoryId: string, month: string, lim
     budget = await repo.upsertBudget(userId, categoryId, from, limitCents);
   } catch (err) {
     // 23503: the composite FK says this category doesn't exist FOR THIS USER (missing or someone else's).
-    if (pgErrorCode(err) === "23503") throw new AppError(400, "categoryId: category not found");
+    if (pgErrorCode(err) === "23503") throw new AppError(400, "CATEGORY_UNKNOWN", "categoryId: category not found");
     throw err;
   }
   return toView(budget, await spentByCategory(userId, from, to));
 }
 
 export async function remove(userId: string, id: string): Promise<void> {
-  if (!(await repo.deleteBudget(userId, id))) throw new AppError(404, "Budget not found");
+  if (!(await repo.deleteBudget(userId, id))) throw new AppError(404, "BUDGET_NOT_FOUND", "Budget not found");
 }

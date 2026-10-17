@@ -1,5 +1,8 @@
 import { useState, type FormEvent } from "react";
+import { ApiError } from "../api";
 import type { Budget } from "../budgets";
+import { errorText } from "../i18n/errors";
+import { useI18n } from "../i18n/locale";
 import { centsToInput, formatCents, parseDollarsToCents } from "../money";
 import type { Category } from "../transactions";
 import { CategorySelect } from "./CategorySelect";
@@ -14,8 +17,10 @@ interface Props {
 }
 
 export function BudgetForm({ categories, budgets, initial, onSubmit, onCancel, onCategoryCreated }: Props) {
+  const { lang, t } = useI18n();
+  const f = t.budgetForm;
   const [categoryId, setCategoryId] = useState(initial?.categoryId ?? categories[0]?.id ?? "");
-  const [limit, setLimit] = useState(initial ? centsToInput(initial.limitCents) : "");
+  const [limit, setLimit] = useState(initial ? centsToInput(initial.limitCents, lang) : "");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -26,14 +31,14 @@ export function BudgetForm({ categories, budgets, initial, onSubmit, onCancel, o
     e.preventDefault();
     setError(null);
     const limitCents = parseDollarsToCents(limit);
-    if (limitCents === null) return setError("Enter a limit greater than 0 with at most 2 decimals, like 500 or 500,00.");
-    if (!categoryId) return setError("Choose a category, or create one first.");
+    if (limitCents === null) return setError(f.limitInvalid);
+    if (!categoryId) return setError(t.common.chooseCategory);
 
     setSubmitting(true);
     try {
       await onSubmit(categoryId, limitCents);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not save the budget.");
+      setError(err instanceof ApiError ? errorText(err, lang) : f.saveFailed);
     } finally {
       setSubmitting(false);
     }
@@ -41,7 +46,7 @@ export function BudgetForm({ categories, budgets, initial, onSubmit, onCancel, o
 
   return (
     <form className="tx-form" onSubmit={handleSubmit}>
-      <h2>{initial ? "Change budget limit" : "Set a budget"}</h2>
+      <h2>{initial ? f.changeTitle : f.setTitle}</h2>
       <CategorySelect
         categories={categories}
         value={categoryId}
@@ -51,14 +56,10 @@ export function BudgetForm({ categories, budgets, initial, onSubmit, onCancel, o
         disabled={initial !== undefined}
       />
       <label>
-        Monthly limit (USD)
-        <input value={limit} onChange={(e) => setLimit(e.target.value)} inputMode="decimal" placeholder="500.00" required />
+        {f.limit}
+        <input value={limit} onChange={(e) => setLimit(e.target.value)} inputMode="decimal" placeholder={f.limitPlaceholder} required />
       </label>
-      {existing && (
-        <p className="muted">
-          This category already has a budget this month (limit {formatCents(existing.limitCents)}). Saving replaces it.
-        </p>
-      )}
+      {existing && <p className="muted">{f.replaces(formatCents(existing.limitCents, lang))}</p>}
       {error && (
         <p role="alert" className="error">
           {error}
@@ -66,10 +67,10 @@ export function BudgetForm({ categories, budgets, initial, onSubmit, onCancel, o
       )}
       <div className="inline">
         <button type="submit" disabled={submitting}>
-          {submitting ? "Saving…" : "Save"}
+          {submitting ? t.common.saving : t.common.save}
         </button>
         <button type="button" className="secondary" onClick={onCancel} disabled={submitting}>
-          Cancel
+          {t.common.cancel}
         </button>
       </div>
     </form>
